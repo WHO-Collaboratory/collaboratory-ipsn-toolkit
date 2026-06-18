@@ -121,6 +121,11 @@ table { border-collapse: separate; border-spacing: 2px; }
 .pm-term-row { display: flex; gap: 6px; margin-bottom: 3px; }
 .pm-term-label { flex: 0 0 80px; font-weight: 600; color: #555; }
 .pm-term-val { color: #333; font-style: italic; word-break: break-word; }
+.pm-count-label { font-size: 11px; color: #555; margin: 4px 0 8px; font-style: italic; }
+.csv-btn { font-size: 11px; font-weight: 600; color: #0077b6; background: #e8f4fd;
+  border: 1px solid #b8d9f0; border-radius: 3px; padding: 3px 8px; cursor: pointer;
+  text-decoration: none; margin-right: 8px; }
+.csv-btn:hover { background: #cce4f7; }
 </style>
 </head>
 <body>
@@ -311,7 +316,7 @@ function fetchPubMed(pathogenName, ucNum) {
   var cacheKey = pathogenName + '|' + ucNum;
   if (pmCache[cacheKey] !== undefined) {
     var cached = pmCache[cacheKey];
-    renderPubMed(cached.results, cached.meta, cached.url);
+    renderPubMed(cached.results, cached.meta, cached.url, cached.results.length, cached.totalCount, cached.pathogen, cached.ucNum);
     return;
   }
 
@@ -345,7 +350,7 @@ function fetchPubMed(pathogenName, ucNum) {
   var today = new Date().toISOString().slice(0,10).replace(/-/g,'/');
   var searchURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed' +
     '&term=' + encodeURIComponent(query) +
-    '&retmax=20&retmode=json&datetype=pdat&mindate=2019/01/01&maxdate=' + today;
+    '&retmax=200&retmode=json&datetype=pdat&mindate=2019/01/01&maxdate=' + today;
   // PubMed web link using same query
   var pmWebURL = 'https://pubmed.ncbi.nlm.nih.gov/?term=' + encodeURIComponent(query) +
     '&filter=dates.2019/01/01-' + today;
@@ -353,18 +358,19 @@ function fetchPubMed(pathogenName, ucNum) {
   fetch(searchURL)
     .then(function(r) { return r.json(); })
     .then(function(data) {
-      var pmids = (data.esearchresult && data.esearchresult.idlist) || [];
-      if (!pmids.length) {
-        pmCache[cacheKey] = { results: [], meta: searchMeta, url: pmWebURL };
-        renderPubMed([], searchMeta, pmWebURL);
+      var allPmids = (data.esearchresult && data.esearchresult.idlist) || [];
+      var totalCount = parseInt((data.esearchresult && data.esearchresult.count) || '0', 10);
+      if (!allPmids.length) {
+        pmCache[cacheKey] = { results: [], totalCount: 0, meta: searchMeta, url: pmWebURL, pathogen: pathogenName, ucNum: ucNum };
+        renderPubMed([], searchMeta, pmWebURL, 0, 0, pathogenName, ucNum);
         return;
       }
       var summaryURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed' +
-        '&id=' + pmids.join(',') + '&retmode=json';
+        '&id=' + allPmids.join(',') + '&retmode=json';
       return fetch(summaryURL)
         .then(function(r2) { return r2.json(); })
         .then(function(sd) {
-          var results = pmids.map(function(id) {
+          var results = allPmids.map(function(id) {
             var doc = sd.result && sd.result[id];
             if (!doc) return null;
             var authors = (doc.authors || []).slice(0,3).map(function(a) { return a.name; }).join(', ');
@@ -378,9 +384,8 @@ function fetchPubMed(pathogenName, ucNum) {
               source: 'pubmed'
             };
           }).filter(Boolean);
-          pmCache[cacheKey] = results;
-          pmCache[cacheKey] = { results: results, meta: searchMeta, url: pmWebURL };
-          renderPubMed(results, searchMeta, pmWebURL);
+          pmCache[cacheKey] = { results: results, totalCount: totalCount, meta: searchMeta, url: pmWebURL, pathogen: pathogenName, ucNum: ucNum };
+          renderPubMed(results, searchMeta, pmWebURL, results.length, totalCount, pathogenName, ucNum);
         });
     })
     .catch(function(err) {
@@ -390,7 +395,7 @@ function fetchPubMed(pathogenName, ucNum) {
     });
 }
 
-function renderPubMed(results, meta, pmWebURL) {
+function renderPubMed(results, meta, pmWebURL, fetchedCount, totalCount, pathogenName, ucNum) {
   var stEl = document.getElementById('pmStatus');
   var resEl = document.getElementById('pmResults');
   if (!stEl || !resEl) return;  // user already clicked away
@@ -416,9 +421,22 @@ function renderPubMed(results, meta, pmWebURL) {
     resEl.innerHTML = metaHtml + '<div class="no-studies">No PubMed results found. ' + linkHtml + '</div>';
     return;
   }
+  var displayResults = results.slice(0, 20);
+  var countLabel = '';
+  if (totalCount > fetchedCount) {
+    countLabel = 'Showing ' + fetchedCount + ' of ' + totalCount + ' results (2019–present). Download CSV for full list or use Search PubMed for all results.';
+  } else if (fetchedCount > 20) {
+    countLabel = 'Showing 20 of ' + fetchedCount + ' results. Download CSV for all ' + fetchedCount + '.';
+  } else if (fetchedCount > 0) {
+    countLabel = fetchedCount + ' result' + (fetchedCount === 1 ? '' : 's') + ' found.';
+  }
+  var downloadBtn = results.length > 0
+    ? '<button class="csv-btn" onclick="downloadCSV(' + JSON.stringify(pathogenName) + ',' + ucNum + ')">&#8595; Download all ' + results.length + ' as CSV</button>'
+    : '';
   var html = metaHtml;
-  results.forEach(function(s) { html += studyCard(s, true); });
-  html += '<div class="pubmed-footer">' + linkHtml + '</div>';
+  if (countLabel) html += '<div class="pm-count-label">' + esc(countLabel) + '</div>';
+  displayResults.forEach(function(s) { html += studyCard(s, true); });
+  html += '<div class="pubmed-footer">' + downloadBtn + linkHtml + '</div>';
   resEl.innerHTML = html;
   resEl.querySelectorAll('.more-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
@@ -429,6 +447,46 @@ function renderPubMed(results, meta, pmWebURL) {
   });
 }
 
+
+function downloadCSV(pathogenName, ucNum) {
+  var cacheKey = pathogenName + '|' + ucNum;
+  var cached = pmCache[cacheKey];
+  if (!cached || !cached.results.length) return;
+
+  var uc = USE_CASES[ucNum - 1];
+  var ucLabel = 'UC' + ucNum + ': ' + (uc ? uc.name : '');
+  var rows = [['PMID', 'Title', 'Authors', 'Year', 'Journal', 'Pathogen', 'Use Case', 'PubMed URL']];
+  cached.results.forEach(function(s) {
+    rows.push([
+      s.pmid,
+      s.title,
+      s.authors,
+      s.year,
+      s.journal,
+      pathogenName,
+      ucLabel,
+      'https://pubmed.ncbi.nlm.nih.gov/' + s.pmid + '/'
+    ]);
+  });
+
+  var csv = rows.map(function(row) {
+    return row.map(function(cell) {
+      var val = String(cell || '').replace(/"/g, '""');
+      return '"' + val + '"';
+    }).join(',');
+  }).join('\r\n');
+
+  var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  var fname = (pathogenName + '_UC' + ucNum).replace(/[^a-zA-Z0-9_]/g, '_') + '_PubMed.csv';
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
 document.getElementById('closeBtn').onclick = function() {
   document.getElementById('sidebar').classList.add('hidden');
   if (activeCell) { activeCell.classList.remove('active'); activeCell = null; }
