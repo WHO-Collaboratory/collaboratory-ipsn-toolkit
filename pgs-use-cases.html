@@ -96,6 +96,20 @@ table { border-collapse: separate; border-spacing: 2px; }
 
 .filtered-out { display: none !important; }
 .dim { opacity: 0.2 !important; pointer-events: none; }
+
+.tag.pubmed { background: #e8f4fd; color: #0077b6; border: 1px solid #b8d9f0; }
+.tag.src-excel { background: #e8f5e9; color: #2e7d32; border: 1px solid #b2dfdb; }
+.study a.pmid-link { font-size: 11px; color: #0077b6; text-decoration: none; margin-left: 4px; }
+.study a.pmid-link:hover { text-decoration: underline; }
+.pubmed-section { margin-top: 10px; }
+.pubmed-hd { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  color: #0077b6; margin: 10px 0 6px; padding-bottom: 4px; border-bottom: 1px solid #cce4f7; }
+.pubmed-loading { font-size: 11px; color: #888; font-style: italic; padding: 4px 0; }
+.pubmed-error { font-size: 11px; color: #c0392b; padding: 4px 0; }
+.studies-hd-excel { font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .04em; color: #2e7d32; margin: 0 0 6px; padding-bottom: 4px;
+  border-bottom: 1px solid #b2dfdb; }
+
 </style>
 </head>
 <body>
@@ -237,6 +251,9 @@ MATRIX.forEach(function(p, pi) {
 // ── Sidebar
 var activeCell = null;
 
+// ── PubMed live-fetch cache (keyed by "pathogen|ucNum") ──────────────────
+var pmCache = {};
+
 function openSidebar(pi, ucNum, cell) {
   if (activeCell) activeCell.classList.remove('active');
   activeCell = cell;
@@ -253,17 +270,108 @@ function openSidebar(pi, ucNum, cell) {
   var matches = findStudies(p.name, ucNum);
   var html = '<div class="uc-desc">' + esc(uc.desc) + '</div>';
   html += '<div class="level-def"><strong>' + LEVEL_LABELS[lv] + ':</strong> ' + esc(LEVEL_DEFS[lv]) + '</div>';
-  html += '<div class="studies-hd">Literature evidence (' + matches.length + ' ' + (matches.length === 1 ? 'study' : 'studies') + ')</div>';
-  if (matches.length === 0) {
-    html += '<div class="no-studies">No directly matching studies in the literature review for this combination. The utility level is based on expert assessment.</div>';
+
+  // ── Asia PGI literature review section ──────────────────────────────────
+  if (matches.length > 0) {
+    html += '<div class="studies-hd-excel">Asia PGI Literature Review (' + matches.length + ' ' + (matches.length === 1 ? 'study' : 'studies') + ')</div>';
+    matches.forEach(function(s) { html += studyCard(s, false); });
   } else {
-    matches.forEach(function(s) { html += studyCard(s); });
+    html += '<div class="studies-hd-excel">Asia PGI Literature Review</div>';
+    html += '<div class="no-studies">No directly matching studies in the Asia PGI literature review for this combination.</div>';
   }
+
+  // ── PubMed live section (placeholder, filled asynchronously) ────────────
+  html += '<div class="pubmed-section" id="pmSection">';
+  html += '<div class="pubmed-hd">PubMed Live Search (2019–2025)</div>';
+  html += '<div class="pubmed-loading" id="pmStatus">Searching PubMed…</div>';
+  html += '<div id="pmResults"></div>';
+  html += '</div>';
 
   document.getElementById('sbBody').innerHTML = html;
   document.getElementById('sidebar').classList.remove('hidden');
 
   document.querySelectorAll('.more-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var abs = this.previousElementSibling;
+      var open = abs.classList.toggle('open');
+      this.textContent = open ? 'Show less' : 'Show more';
+    });
+  });
+
+  // ── Kick off PubMed fetch (async) ────────────────────────────────────────
+  fetchPubMed(p.name, ucNum);
+}
+
+function fetchPubMed(pathogenName, ucNum) {
+  var cacheKey = pathogenName + '|' + ucNum;
+  if (pmCache[cacheKey] !== undefined) {
+    renderPubMed(pmCache[cacheKey], pathogenName);
+    return;
+  }
+
+  var terms = PATHOGEN_ALIASES[pathogenName] || [pathogenName.toLowerCase()];
+  var termsQ = terms.map(function(t) { return '"' + t + '"[Title/Abstract]'; }).join(' OR ');
+  var base = '("genomic surveillance"[Title/Abstract] OR "genomic epidemiology"[Title/Abstract] OR ' +
+    '"whole genome sequencing"[Title/Abstract] OR "phylogenetic"[Title/Abstract] OR ' +
+    '"next-generation sequencing"[Title/Abstract])';
+  var query = base + ' AND (' + termsQ + ') AND "public health"[Title/Abstract]';
+
+  var searchURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed' +
+    '&term=' + encodeURIComponent(query) +
+    '&retmax=15&retmode=json&datetype=pdat&mindate=2019/01/01&maxdate=2025/12/31';
+
+  fetch(searchURL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var pmids = (data.esearchresult && data.esearchresult.idlist) || [];
+      if (!pmids.length) {
+        pmCache[cacheKey] = [];
+        renderPubMed([], pathogenName);
+        return;
+      }
+      var summaryURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed' +
+        '&id=' + pmids.join(',') + '&retmode=json';
+      return fetch(summaryURL)
+        .then(function(r2) { return r2.json(); })
+        .then(function(sd) {
+          var results = pmids.map(function(id) {
+            var doc = sd.result && sd.result[id];
+            if (!doc) return null;
+            var authors = (doc.authors || []).slice(0,3).map(function(a) { return a.name; }).join(', ');
+            if ((doc.authors || []).length > 3) authors += ' et al.';
+            return {
+              title: doc.title || '',
+              authors: authors,
+              year: (doc.pubdate || '').substring(0,4),
+              journal: doc.fulljournalname || doc.source || '',
+              pmid: id,
+              source: 'pubmed'
+            };
+          }).filter(Boolean);
+          pmCache[cacheKey] = results;
+          renderPubMed(results, pathogenName);
+        });
+    })
+    .catch(function(err) {
+      var st = document.getElementById('pmStatus');
+      if (st) st.className = 'pubmed-error';
+      if (st) st.textContent = 'PubMed unavailable (check network connection).';
+    });
+}
+
+function renderPubMed(results, pathogenName) {
+  var stEl = document.getElementById('pmStatus');
+  var resEl = document.getElementById('pmResults');
+  if (!stEl || !resEl) return;  // user already clicked away
+  stEl.style.display = 'none';
+  if (!results.length) {
+    resEl.innerHTML = '<div class="no-studies">No PubMed results found for this pathogen/period.</div>';
+    return;
+  }
+  var html = '';
+  results.forEach(function(s) { html += studyCard(s, true); });
+  resEl.innerHTML = html;
+  resEl.querySelectorAll('.more-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
       var abs = this.previousElementSibling;
       var open = abs.classList.toggle('open');
@@ -277,16 +385,27 @@ document.getElementById('closeBtn').onclick = function() {
   if (activeCell) { activeCell.classList.remove('active'); activeCell = null; }
 };
 
-function studyCard(s) {
+function studyCard(s, isPubMed) {
   var html = '<div class="study">';
-  html += '<div class="study-title">' + esc(s.title) + '</div>';
+  if (isPubMed && s.pmid) {
+    html += '<div class="study-title"><a href="https://pubmed.ncbi.nlm.nih.gov/' + esc(s.pmid) + '/" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;">' + esc(s.title) + '</a></div>';
+  } else {
+    html += '<div class="study-title">' + esc(s.title) + '</div>';
+  }
   html += '<div class="study-tags">';
-  if (s.country) html += '<span class="tag">' + esc(s.country) + '</span>';
-  if (s.period) html += '<span class="tag">' + esc(String(s.period)) + '</span>';
-  if (s.n_genomes) html += '<span class="tag">n=' + esc(String(s.n_genomes)) + '</span>';
-  if (s.objective_clean) html += '<span class="tag obj">' + esc(s.objective_clean.substring(0,55)) + '</span>';
+  if (isPubMed) {
+    if (s.authors) html += '<span class="tag">' + esc(s.authors) + '</span>';
+    if (s.year) html += '<span class="tag">' + esc(s.year) + '</span>';
+    if (s.journal) html += '<span class="tag obj">' + esc(s.journal.substring(0,50)) + '</span>';
+    if (s.pmid) html += '<span class="tag pubmed">PMID:' + esc(s.pmid) + '</span>';
+  } else {
+    if (s.country) html += '<span class="tag">' + esc(s.country) + '</span>';
+    if (s.period) html += '<span class="tag">' + esc(String(s.period)) + '</span>';
+    if (s.n_genomes) html += '<span class="tag">n=' + esc(String(s.n_genomes)) + '</span>';
+    if (s.objective_clean) html += '<span class="tag obj">' + esc(s.objective_clean.substring(0,55)) + '</span>';
+  }
   html += '</div>';
-  if (s.abstract_short) {
+  if (!isPubMed && s.abstract_short) {
     html += '<div class="study-abs">' + esc(s.abstract_short) + '</div>';
     html += '<button class="more-btn">Show more</button>';
   }
