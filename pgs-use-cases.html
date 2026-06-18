@@ -110,14 +110,29 @@ table { border-collapse: separate; border-spacing: 2px; }
   letter-spacing: .04em; color: #2e7d32; margin: 0 0 6px; padding-bottom: 4px;
   border-bottom: 1px solid #b2dfdb; }
 
+.pubmed-footer { margin-top: 8px; text-align: right; }
+.pubmed-web-link { font-size: 11px; font-weight: 600; color: #0077b6; text-decoration: none; }
+.pubmed-web-link:hover { text-decoration: underline; }
+.pm-terms-box { margin: 6px 0 8px; border: 1px solid #cce4f7; border-radius: 4px; font-size: 11px; overflow: hidden; }
+.pm-terms-toggle { padding: 5px 8px; background: #e8f4fd; color: #0077b6; font-weight: 600;
+  cursor: pointer; user-select: none; }
+.pm-terms-box:not(.open) .pm-terms-body { display: none; }
+.pm-terms-body { padding: 6px 8px; background: #f7fbff; }
+.pm-term-row { display: flex; gap: 6px; margin-bottom: 3px; }
+.pm-term-label { flex: 0 0 80px; font-weight: 600; color: #555; }
+.pm-term-val { color: #333; font-style: italic; word-break: break-word; }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="logo">PGS Use Cases Framework</div>
-    <div class="subtitle">Pathogen Genomic Surveillance — Levels of Utility for Public Health Decision-Making</div>
+  <div style="display:flex;align-items:center;gap:16px;">
+    <img src="https://who-collaboratory.github.io/collaboratory-ebola-genomics-community/img/ipsn.png"
+         alt="IPSN logo" style="height:48px;" onerror="this.style.display='none'" />
+    <div>
+      <div class="logo">PGS Use Cases Framework</div>
+      <div class="subtitle">Pathogen Genomic Surveillance — Levels of Utility for Public Health Decision-Making</div>
+    </div>
   </div>
 </header>
 
@@ -165,7 +180,7 @@ var LEVEL_DEFS = {"H": "High: Genomics does enhance understanding of the pathoge
 var LEVEL_LABELS = {"H": "High utility", "M": "Medium utility", "L": "Low utility", "NA": "Not applicable"};
 var GROUP_LABELS = {"pandemic": "Pathogens with pandemic potential (R&D Blueprint)", "endemic": "Endemic pathogens with epidemic potential", "agnostic": "Pathogen-agnostic surveillance areas"};
 var PATHOGEN_ALIASES = {"Disease X": ["disease x"], "SARS-CoV-2": ["sars-cov-2", "covid"], "MERS-CoV and SARS": ["mers"], "Crimean-Congo haemorrhagic fever": ["crimean-congo", "cchf"], "Ebola and Marburg diseases": ["ebola", "marburg"], "Lassa fever": ["lassa"], "Nipah and henipaviral diseases": ["nipah", "henipa"], "Rift Valley fever": ["rift valley"], "Zika Virus disease": ["zika"], "AMR bacteria (GLASS priority list)": ["amr bacteria", "escherichia coli", "e. coli", "klebsiella", "salmonella", "staphylococcus", "enterococcus", "acinetobacter", "pseudomonas", "neisseria gonorrhoeae"], "AMR fungus": ["amr fungus", "candida", "aspergillus"], "Chikungunya fever": ["chikungunya"], "Cholera": ["cholera", "vibrio cholerae"], "Dengue fever": ["dengue"], "Food-borne pathogens": ["food-borne", "foodborne", "salmonella", "campylobacter", "listeria"], "Hepatitis (C or B)": ["hepatitis c", "hepatitis b", "hcv", "hbv"], "HIV": ["hiv"], "Influenza, avian & zoonotic": ["avian influenza", "avian flu", "zoonotic influenza", "h5n1", "h7n9"], "Influenza, seasonal": ["seasonal influenza", "influenza a", "influenza b"], "Malaria": ["malaria", "plasmodium"], "Measles": ["measles"], "Meningitis": ["meningitis", "meningococcal"], "Mpox": ["mpox", "monkeypox", "hmpxv"], "Neisseria gonorrhoeae": ["neisseria gonorrhoeae", "gonorrhoea", "gonorrhea"], "Poliomyelitis": ["polio", "poliovirus"], "Rubella": ["rubella"], "Tuberculosis": ["tuberculosis", "mycobacterium tuberculosis"], "Yellow fever": ["yellow fever"], "Environmental surveillance": ["environmental surveillance", "environmental sampling"], "Water surveillance (incl. wastewater)": ["water surveillance", "wastewater", "sewage"], "Air surveillance": ["air surveillance", "air sampling"], "Metagenomics": ["metagenomics", "metagenome"]};
-var UC_KEYWORDS = {"1": ["early detection", "early warning"], "2": ["characterization", "characterisation", "subtype", "typing", "phylogenomic", "phylogenetic charact"], "3": ["epidemiology", "transmission pattern", "genomic epidemiology", "phylodynamic", "phylogenetic analysis", "spread", "dispersion", "genetic diversity", "retrospective"], "4": ["contact trac"], "5": ["outbreak investigation", "outbreak tracking", "cluster"], "6": ["elimination", "eradication"], "7": ["research and development", "r&d", "vaccine development", "diagnostic development"], "8": ["monitoring and evaluation", "m&e", "vaccine monitoring", "vaccine effectiveness", "treatment failure"], "9": ["non-pharmacological", "npc", "countermeasure"], "10": ["clinical characterization", "severity", "virulence", "clinical severity"], "11": ["clinical management", "patient level", "antimicrobial steward", "treatment decision"]};
+var UC_KEYWORDS = {"1": ["early detection", "early warning"], "2": ["characterization", "characterisation", "subtype", "typing", "phylogenomic", "phylogenetic characterization", "phylogenetic characterisation"], "3": ["epidemiology", "transmission pattern", "genomic epidemiology", "phylodynamic", "phylogenetic analysis", "spread", "dispersion", "genetic diversity", "retrospective"], "4": ["contact tracing", "contact-tracing", "cluster investigation", "transmission chain"], "5": ["outbreak investigation", "outbreak tracking", "cluster"], "6": ["elimination", "eradication"], "7": ["research and development", "vaccine development", "diagnostic development", "diagnostics", "vaccines", "therapeutics"], "8": ["monitoring and evaluation", "vaccine monitoring", "vaccine effectiveness", "treatment failure", "diagnostics", "vaccines", "therapeutics"], "9": ["non-pharmacological countermeasures", "non-pharmacological", "countermeasure"], "10": ["clinical characterization", "severity", "virulence", "clinical severity"], "11": ["clinical management", "patient level", "antimicrobial stewardship", "treatment decision"]};
 var UC_ABBREVS = ["Early Det.", "Charact.", "Genetic Epi.", "Contact Tr.", "Outbreak Inv.", "Elimination", "DVT: R&D", "DVT: M&E", "NPC: M&E", "Clin. Char.", "Clin. Mgmt."];
 
 // ── Build UC filter dropdown
@@ -267,22 +282,12 @@ function openSidebar(pi, ucNum, cell) {
   document.getElementById('sbUC').textContent = 'UC' + ucNum + ': ' + uc.name;
   document.getElementById('sbBadge').innerHTML = '<span class="sb-badge badge-' + lv + '">' + LEVEL_LABELS[lv] + '</span>';
 
-  var matches = findStudies(p.name, ucNum);
   var html = '<div class="uc-desc">' + esc(uc.desc) + '</div>';
   html += '<div class="level-def"><strong>' + LEVEL_LABELS[lv] + ':</strong> ' + esc(LEVEL_DEFS[lv]) + '</div>';
 
-  // ── Asia PGI literature review section ──────────────────────────────────
-  if (matches.length > 0) {
-    html += '<div class="studies-hd-excel">Asia PGI Literature Review (' + matches.length + ' ' + (matches.length === 1 ? 'study' : 'studies') + ')</div>';
-    matches.forEach(function(s) { html += studyCard(s, false); });
-  } else {
-    html += '<div class="studies-hd-excel">Asia PGI Literature Review</div>';
-    html += '<div class="no-studies">No directly matching studies in the Asia PGI literature review for this combination.</div>';
-  }
-
   // ── PubMed live section (placeholder, filled asynchronously) ────────────
   html += '<div class="pubmed-section" id="pmSection">';
-  html += '<div class="pubmed-hd">PubMed Live Search (2019–2025)</div>';
+  html += '<div class="pubmed-hd">PubMed Live Search (2019 – present)</div>';
   html += '<div class="pubmed-loading" id="pmStatus">Searching PubMed…</div>';
   html += '<div id="pmResults"></div>';
   html += '</div>';
@@ -305,7 +310,8 @@ function openSidebar(pi, ucNum, cell) {
 function fetchPubMed(pathogenName, ucNum) {
   var cacheKey = pathogenName + '|' + ucNum;
   if (pmCache[cacheKey] !== undefined) {
-    renderPubMed(pmCache[cacheKey], pathogenName);
+    var cached = pmCache[cacheKey];
+    renderPubMed(cached.results, cached.meta, cached.url);
     return;
   }
 
@@ -316,17 +322,41 @@ function fetchPubMed(pathogenName, ucNum) {
     '"next-generation sequencing"[Title/Abstract])';
   var query = base + ' AND (' + termsQ + ') AND "public health"[Title/Abstract]';
 
+  // Add use-case keywords to narrow PubMed results to this UC
+  // Filter out very short strings and abbreviations not suitable as PubMed search terms
+  var ucRaw = UC_KEYWORDS[String(ucNum)] || [];
+  var ucTerms = ucRaw.filter(function(t) {
+    return t.length >= 6 && t.indexOf('r&d') < 0 && t.indexOf('m&e') < 0 && t.indexOf('npc') < 0;
+  });
+  if (ucTerms.length > 0) {
+    var ucQ = ucTerms.map(function(t) { return '"' + t + '"[Title/Abstract]'; }).join(' OR ');
+    query += ' AND (' + ucQ + ')';
+  }
+
+  // Build human-readable search metadata for display
+  var searchMeta = {
+    pathogen: terms.map(function(t) { return '\u201c' + t + '\u201d'; }).join(' OR '),
+    ucTerms: ucTerms.length ? ucTerms.map(function(t) { return '\u201c' + t + '\u201d'; }).join(' OR ') : null,
+    base: 'genomic surveillance / genomic epidemiology / WGS / phylogenetic / NGS',
+    fixed: '\u201cpublic health\u201d',
+    period: '2019 \u2013 present'
+  };
+
+  var today = new Date().toISOString().slice(0,10).replace(/-/g,'/');
   var searchURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed' +
     '&term=' + encodeURIComponent(query) +
-    '&retmax=15&retmode=json&datetype=pdat&mindate=2019/01/01&maxdate=2025/12/31';
+    '&retmax=20&retmode=json&datetype=pdat&mindate=2019/01/01&maxdate=' + today;
+  // PubMed web link using same query
+  var pmWebURL = 'https://pubmed.ncbi.nlm.nih.gov/?term=' + encodeURIComponent(query) +
+    '&filter=dates.2019/01/01-' + today;
 
   fetch(searchURL)
     .then(function(r) { return r.json(); })
     .then(function(data) {
       var pmids = (data.esearchresult && data.esearchresult.idlist) || [];
       if (!pmids.length) {
-        pmCache[cacheKey] = [];
-        renderPubMed([], pathogenName);
+        pmCache[cacheKey] = { results: [], meta: searchMeta, url: pmWebURL };
+        renderPubMed([], searchMeta, pmWebURL);
         return;
       }
       var summaryURL = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed' +
@@ -349,7 +379,8 @@ function fetchPubMed(pathogenName, ucNum) {
             };
           }).filter(Boolean);
           pmCache[cacheKey] = results;
-          renderPubMed(results, pathogenName);
+          pmCache[cacheKey] = { results: results, meta: searchMeta, url: pmWebURL };
+          renderPubMed(results, searchMeta, pmWebURL);
         });
     })
     .catch(function(err) {
@@ -359,17 +390,35 @@ function fetchPubMed(pathogenName, ucNum) {
     });
 }
 
-function renderPubMed(results, pathogenName) {
+function renderPubMed(results, meta, pmWebURL) {
   var stEl = document.getElementById('pmStatus');
   var resEl = document.getElementById('pmResults');
   if (!stEl || !resEl) return;  // user already clicked away
   stEl.style.display = 'none';
+
+  // ── Search terms box ──────────────────────────────────────────────────────
+  var metaHtml = '<div class="pm-terms-box">';
+  metaHtml += '<div class="pm-terms-toggle" onclick="this.parentElement.classList.toggle(&quot;open&quot;)">Search terms used &#9660;</div>';
+  metaHtml += '<div class="pm-terms-body">';
+  metaHtml += '<div class="pm-term-row"><span class="pm-term-label">Genomics base</span><span class="pm-term-val">' + esc(meta.base) + '</span></div>';
+  metaHtml += '<div class="pm-term-row"><span class="pm-term-label">Pathogen</span><span class="pm-term-val">' + esc(meta.pathogen) + '</span></div>';
+  if (meta.ucTerms) {
+    metaHtml += '<div class="pm-term-row"><span class="pm-term-label">Use case</span><span class="pm-term-val">' + esc(meta.ucTerms) + '</span></div>';
+  }
+  metaHtml += '<div class="pm-term-row"><span class="pm-term-label">Fixed filter</span><span class="pm-term-val">' + esc(meta.fixed) + ' [Title/Abstract]</span></div>';
+  metaHtml += '<div class="pm-term-row"><span class="pm-term-label">Period</span><span class="pm-term-val">' + esc(meta.period) + '</span></div>';
+  metaHtml += '</div></div>';
+
+  var linkHtml = pmWebURL
+    ? '<a class="pubmed-web-link" href="' + pmWebURL + '" target="_blank" rel="noopener">Search PubMed &rarr;</a>'
+    : '';
   if (!results.length) {
-    resEl.innerHTML = '<div class="no-studies">No PubMed results found for this pathogen/period.</div>';
+    resEl.innerHTML = metaHtml + '<div class="no-studies">No PubMed results found. ' + linkHtml + '</div>';
     return;
   }
-  var html = '';
+  var html = metaHtml;
   results.forEach(function(s) { html += studyCard(s, true); });
+  html += '<div class="pubmed-footer">' + linkHtml + '</div>';
   resEl.innerHTML = html;
   resEl.querySelectorAll('.more-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
