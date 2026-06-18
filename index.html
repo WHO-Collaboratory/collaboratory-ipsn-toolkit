@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPSN Toolkit – Pathogen Genomic Surveillance</title>
+  <style>
+    /* ── Tokens — from dashboard.html ── */
+    :root {
+      --who-blue:    #009EDB;
+      --who-blue-dk: #00558B;
+      --who-blue-mid:#005a8e;
+      --page-bg:     #f5f6f8;
+      --card-bg:     #ffffff;
+      --border:      #dde3ea;
+      --text:        #222;
+      --muted:       #555;
+      --light-muted: #999;
+
+      /* Domain colours — from the slide */
+      --cap-bg:    #0a2a5e;   /* deep navy for Capacity */
+      --cap-accent:#009EDB;   /* cyan */
+      --cap-lt:    #e6f4fb;
+      --fin-bg:    #b85c00;   /* orange for Financing */
+      --fin-accent:#f5a623;
+      --fin-lt:    #fff4e3;
+      --dat-bg:    #1a5c3a;   /* green for Data */
+      --dat-accent:#3aaa5e;
+      --dat-lt:    #e6f5ec;
+
+      /* status pills */
+      --s-pub-bg:  #d4edda; --s-pub:  #155724; --s-pub-bdr:  #aceebb;
+      --s-appr-bg: #cce5ff; --s-appr: #004085; --s-appr-bdr: #80ccff;
+      --s-rev-bg:  #fff3cd; --s-rev:  #856404; --s-rev-bdr:  #e3b341;
+      --s-plan-bg: #f0f4f8; --s-plan: #444;    --s-plan-bdr: #c5cdd5;
+      --s-twg-bg:  #e2d9f3; --s-twg:  #4a235a; --s-twg-bdr:  #c9b8e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--page-bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* ── HEADER — exact dashboard.html pattern ── */
+    header { background: var(--card-bg); border-bottom: 4px solid var(--who-blue); }
+    .header-top {
+      background: var(--who-blue-dk);
+      padding: 6px 32px;
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.85);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .header-top a { color: rgba(255,255,255,0.85); text-decoration: none; }
+    .header-top a:hover { color: #fff; text-decoration: underline; }
+    .header-body { padding: 16px 32px; display: flex; align-items: center; gap: 24px; }
+    .header-body img { height: 52px; }
+    .header-divider { width: 1px; height: 44px; background: var(--border); }
+    .header-text h1 { font-size: 1.15rem; font-weight: 700; color: var(--who-blue-dk); line-height: 1.3; }
+    .header-text p  { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+    /* ── MAIN ── */
+    main { max-width: 1200px; margin: 0 auto; padding: 24px 24px 56px; }
+
+    /* ── Intro card ── */
+    .intro-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 20px 24px;
+      margin-bottom: 20px;
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .intro-card p + p { margin-top: 0.6rem; }
+    .intro-card a { color: var(--who-blue-mid); }
+    .intro-card strong { color: var(--text); }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 16px 12px;
+      text-align: center;
+    }
+    .stat-num   { font-size: 1.8rem; font-weight: 700; color: var(--who-blue-mid); display: block; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 2px; }
+
+    /* ── Domain section card ── */
+    .domain-card {
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .domain-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 22px;
+      color: #fff;
+    }
+    .domain-header.cap { background: var(--cap-bg); }
+    .domain-header.fin { background: var(--fin-bg); }
+    .domain-header.dat { background: var(--dat-bg); }
+
+    .domain-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 1.3rem;
+    }
+    .domain-icon.cap { background: var(--cap-accent); }
+    .domain-icon.fin { background: var(--fin-accent); }
+    .domain-icon.dat { background: var(--dat-accent); }
+
+    .domain-title { font-size: 1rem; font-weight: 700; }
+    .domain-subtitle { font-size: 0.8rem; opacity: 0.8; margin-top: 1px; }
+
+    .domain-body { background: var(--card-bg); padding: 18px; }
+
+    /* ── Tool grid ── */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+    .tool-card {
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: #fff;
+      transition: box-shadow 0.15s, border-color 0.15s;
+    }
+    .tool-card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.1); }
+    .tool-card.cap:hover { border-color: var(--cap-accent); }
+    .tool-card.fin:hover { border-color: var(--fin-accent); }
+    .tool-card.dat:hover { border-color: var(--dat-accent); }
+
+    /* left accent bar using domain colour */
+    .tool-card.cap { border-left: 3px solid var(--cap-accent); }
+    .tool-card.fin { border-left: 3px solid var(--fin-accent); }
+    .tool-card.dat { border-left: 3px solid var(--dat-accent); }
+
+    .card-top { display: flex; flex-direction: column; align-items: stretch; gap: 8px; }
+    .card-title { font-size: 0.9rem; font-weight: 600; color: var(--text); line-height: 1.35; flex: 1; }
+    .card-summary { font-size: 0.82rem; color: #444; line-height: 1.55; }
+    .card-meta { font-size: 0.78rem; color: var(--muted); }
+    .card-meta strong { color: var(--text); }
+
+    /* ── Progress timeline ── */
+    .progress-timeline {
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+    .tl-track {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
+    .tl-node {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: #fff;
+      flex-shrink: 0;
+    }
+    .tl-seg {
+      flex: 1;
+      height: 2px;
+      background: var(--border);
+    }
+    .tl-node.done   { background: var(--who-blue); border-color: var(--who-blue); }
+    .tl-node.active { background: #fff; border-color: var(--who-blue); box-shadow: 0 0 0 3px rgba(0,158,219,0.18); }
+    .tl-seg.done    { background: var(--who-blue); }
+    .tl-current {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 0.72rem;
+    }
+    .tl-current .tl-stage {
+      font-weight: 700;
+      color: var(--who-blue-dk);
+    }
+    .tl-current .tl-of {
+      color: var(--light-muted);
+      font-size: 0.68rem;
+    }
+
+    /* Tags */
+    .card-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+    .tag {
+      font-size: 0.7rem; font-weight: 600;
+      padding: 1px 7px; border-radius: 10px;
+      background: #f0f4f8; color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    /* ── Domain legend ── */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      padding: 10px 16px;
+      flex: 1;
+      min-width: 200px;
+    }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .legend-dot.cap { background: var(--cap-accent); }
+    .legend-dot.fin { background: var(--fin-accent); }
+    .legend-dot.dat { background: var(--dat-accent); }
+    .legend-text { font-size: 0.82rem; }
+    .legend-text strong { display: block; font-size: 0.88rem; }
+
+    /* ── About card ── */
+    .about-card {
+      background: var(--card-bg);
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .about-header {
+      padding: 14px 22px;
+      border-bottom: 1px solid #eee;
+      font-size: 0.95rem;
+      font-weight: 600;
+    }
+    .about-body {
+      padding: 18px 22px;
+      font-size: 0.85rem;
+      color: var(--muted);
+      line-height: 1.65;
+    }
+    .about-body p + p { margin-top: 0.6rem; }
+    .about-body a { color: var(--who-blue-mid); }
+    .about-body strong { color: var(--text); }
+
+    /* ── Card link ── */
+    .card-link {
+      display: inline-block;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--who-blue-mid);
+      text-decoration: none;
+      margin-top: 2px;
+    }
+    .card-link:hover { text-decoration: underline; }
+
+    /* ── Footer ── */
+    footer { text-align: center; font-size: 0.78rem; color: var(--light-muted); padding: 0 24px 24px; }
+    footer a { color: var(--who-blue-mid); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    footer p + p { margin-top: 6px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 900px) {
+      .stats-row { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .header-body { padding: 14px 16px; gap: 14px; }
+      .header-top  { padding: 6px 16px; }
+      main { padding: 16px 12px 40px; }
+      .stats-row { grid-template-columns: repeat(2, 1fr); }
+      .tool-grid { grid-template-columns: 1fr; }
+      .legend { flex-direction: column; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-top">
+    <a href="https://www.who.int/initiatives/international-pathogen-surveillance-network" target="_blank">International Pathogen Surveillance Network (IPSN)</a>
+    · WHO Hub for Pandemic and Epidemic Intelligence, Berlin
+  </div>
+  <div class="header-body">
+    <img src="https://who-collaboratory.github.io/collaboratory-ebola-genomics-community/img/ipsn.png"
+         alt="IPSN logo" onerror="this.style.display='none'" />
+    <div class="header-divider"></div>
+    <div class="header-text">
+      <h1>IPSN Toolkit</h1>
+      <p>Pathogen genomic surveillance frameworks, tools, and guidance</p>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Intro -->
+  <div class="intro-card">
+    <p>
+      The <strong>IPSN Toolkit</strong> is a suite of WHO-endorsed resources developed with global partners to help countries plan, implement, and sustain pathogen genomics for public health decision-making.
+      It is coordinated by the <a href="https://www.who.int/initiatives/international-pathogen-surveillance-network" target="_blank">International Pathogen Surveillance Network (IPSN)</a>,
+      hosted by the WHO Hub for Pandemic and Epidemic Intelligence in Berlin.
+    </p>
+    <p>
+      Tools are organised across three domains — <strong>Capacity</strong>, <strong>Financing</strong>, and <strong>Data</strong> — and are targeted to programme managers, funders, laboratory professionals, policymakers, and other decision-makers.
+    </p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card"><span class="stat-num">13</span><span class="stat-label">Tools &amp; Frameworks</span></div>
+    <div class="stat-card"><span class="stat-num">4</span><span class="stat-label">Published</span></div>
+    <div class="stat-card"><span class="stat-num">2</span><span class="stat-label">In Publication</span></div>
+    <div class="stat-card"><span class="stat-num">5</span><span class="stat-label">In Progress</span></div>
+    <div class="stat-card"><span class="stat-num">2</span><span class="stat-label">In Planning</span></div>
+  </div>
+
+  <!-- Domain legend -->
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot cap"></div>
+      <div class="legend-text">
+        <strong>Capacity</strong>
+        Planning, implementation and evaluation
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot fin"></div>
+      <div class="legend-text">
+        <strong>Financing</strong>
+        Resource mobilization and allocation
+      </div>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot dat"></div>
+      <div class="legend-text">
+        <strong>Data</strong>
+        Standards, analytics and sharing
+      </div>
+    </div>
+  </div>
+
+  <!-- ── CAPACITY DOMAIN ── -->
+  <div class="domain-card">
+    <div class="domain-header cap">
+      <div class="domain-icon cap">🧬</div>
+      <div>
+        <div class="domain-title">Capacity</div>
+        <div class="domain-subtitle">Planning, implementation and evaluation</div>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="tool-grid">
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Country Capacity Framework for Pathogen Genomic Surveillance</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node active" title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">In Publication</span><span class="tl-of">· stage 6 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Identifies the next best investment to build capacity — helping countries understand what they have, what they need, and what they can aim for across endemic, epidemic, and pandemic pathogens.</p>
+          <div class="card-tags"><span class="tag">Capacity</span><span class="tag">Country Implementation</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> UKHSA · Wellcome Sanger Institute · Peter Doherty Institute</p>
+        </div>
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Pathogen Genomic Surveillance Use Cases Framework</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node active" title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">In Publication</span><span class="tl-of">· stage 6 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Identifies multi-pathogen genomics applications — outlining priority use cases and implementation scenarios to guide country decision-making on surveillance systems.</p>
+          <div class="card-tags"><span class="tag">Use Cases</span><span class="tag">Surveillance</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> WHO Experts · Asia PGI</p>
+          <a class="card-link" href="pgs-use-cases.html" target="_blank">Explore interactive framework →</a>
+        </div>
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Prioritization Tool</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Publication"></div><div class="tl-seg done"></div><div class="tl-node active" title="Published"></div></div><div class="tl-current"><span class="tl-stage">Published</span><span class="tl-of">· stage 7 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Identifies how to prioritize scarce resources — supporting countries in making evidence-based investment decisions for pathogen genomics implementation.</p>
+          <div class="card-tags"><span class="tag">Prioritization</span><span class="tag">Investment</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Asia PGI · ErasmusMC · Univ. of Edinburgh · SANBI · PHA4GE · Oswaldo Cruz Foundation (Fiocruz) · INRB</p>
+          <a class="card-link" href="https://pathogen.asiapgi.net/" target="_blank">View tool (hosted by Asia PGI) →</a>
+        </div>
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Sampling Framework</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node active" title="TWG Established"></div><div class="tl-seg "></div><div class="tl-node " title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">TWG Established</span><span class="tl-of">· stage 2 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Develops fit-for-purpose sampling strategies for pathogen genomics and surveillance activities.</p>
+          <div class="card-tags"><span class="tag">Sampling</span><span class="tag">Surveillance</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Doherty Institute</p>
+        </div>
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Workforce Training &amp; Competency Framework</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node active" title="TWG Established"></div><div class="tl-seg "></div><div class="tl-node " title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">TWG Established</span><span class="tl-of">· stage 2 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Helps plan for training and workforce development needs — guidance to help countries strengthen skills and competency requirements for genomics implementation.</p>
+          <div class="card-tags"><span class="tag">Training</span><span class="tag">Workforce</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Doherty Institute</p>
+        </div>
+
+        <div class="tool-card cap">
+          <div class="card-top">
+            <h3 class="card-title">Monitoring &amp; Evaluation Framework</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node active" title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">Pilot</span><span class="tl-of">· stage 5 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Supports countries to evaluate their success — measuring the impact of genomics implementation activities. Piloting currently underway.</p>
+          <div class="card-tags"><span class="tag">M&amp;E</span><span class="tag">Implementation</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Doherty Institute</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FINANCING DOMAIN ── -->
+  <div class="domain-card">
+    <div class="domain-header fin">
+      <div class="domain-icon fin">💰</div>
+      <div>
+        <div class="domain-title">Financing</div>
+        <div class="domain-subtitle">Resource mobilization and allocation</div>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="tool-grid">
+
+        <div class="tool-card fin">
+          <div class="card-top">
+            <h3 class="card-title">Genomics Costing Tool</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Publication"></div><div class="tl-seg done"></div><div class="tl-node active" title="Published"></div></div><div class="tl-current"><span class="tl-stage">Published</span><span class="tl-of">· stage 7 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Calculates pathogen-agnostic genomics lab costs — providing costing estimates to support budgeting, planning, and investment decisions.</p>
+          <div class="card-tags"><span class="tag">Costing</span><span class="tag">Planning</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Partners:</strong> UKHSA · APHL · FIND · WHO HQ · WHO EURO · WHO Country Office Türkiye</p>
+          <a class="card-link" href="https://www.who.int/publications/i/item/9789240118843" target="_blank">View publication →</a>
+          <p class="card-meta"><strong>Digitised version:</strong> <a href="https://genomicscost.vercel.app/" target="_blank">genomicscost.vercel.app</a> — developed by <a href="https://github.com/happykhan" target="_blank">Nabil-Fareed Alikhan</a></p>
+        </div>
+
+        <div class="tool-card fin">
+          <div class="card-top">
+            <h3 class="card-title">WES Costing Tool</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node active" title="TWG Established"></div><div class="tl-seg "></div><div class="tl-node " title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">TWG Established</span><span class="tl-of">· stage 2 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Extends the genomics costing tool to address whole-exome sequencing specific costing scenarios. Survey and TWG meetings currently ongoing.</p>
+          <div class="card-tags"><span class="tag">Costing</span><span class="tag">WES</span></div>
+          <p class="card-meta"><strong>Partners:</strong> WHO Euro</p>
+        </div>
+
+
+      </div>
+    </div>
+  </div>
+
+  <!-- ── DATA DOMAIN ── -->
+  <div class="domain-card">
+    <div class="domain-header dat">
+      <div class="domain-icon dat">🗄️</div>
+      <div>
+        <div class="domain-title">Data</div>
+        <div class="domain-subtitle">Standards, analytics and sharing</div>
+      </div>
+    </div>
+    <div class="domain-body">
+      <div class="tool-grid">
+
+        <div class="tool-card dat">
+          <div class="card-top">
+            <h3 class="card-title">Analytical Considerations for Genomic Surveillance of Mpox Virus</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Publication"></div><div class="tl-seg done"></div><div class="tl-node active" title="Published"></div></div><div class="tl-current"><span class="tl-stage">Published</span><span class="tl-of">· stage 7 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Presents key technical and analytical considerations for implementing MPXV genomic surveillance — outlining use cases and options tailored to varying resource settings to guide design, implementation, and interpretation of surveillance activities.</p>
+          <div class="card-tags"><span class="tag">Mpox</span><span class="tag">Analytics</span><span class="tag">Surveillance</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Published:</strong> 20 December 2025 &nbsp;·&nbsp; <strong>ISBN:</strong> 9789240118805</p>
+          <p class="card-meta"><strong>Team:</strong> WHO Hub for Pandemic and Epidemic Intelligence</p>
+          <p class="card-meta"><strong>Partners:</strong> INRB · Peter Doherty Institute · Oswaldo Cruz Foundation (Fiocruz) · Public Health Agency of Canada · Simon Fraser University · PHA4GE · Central Public Health Laboratories Uganda · National Public Health Laboratory Tanzania · Erasmus MC · University of Edinburgh · Institute for Genomics and Global Health · University of Minnesota · National Institute of Health Pakistan · SANBI · University of the Western Cape · ICMR-National Institute of Virology</p>
+          <a class="card-link" href="https://pandemichub.who.int/publications/i/item/9789240118805" target="_blank">View publication →</a>
+        </div>
+
+        <div class="tool-card dat">
+          <div class="card-top">
+            <h3 class="card-title">Attributes and Principles of Genomic Data-Sharing Platforms</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Development"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Review"></div><div class="tl-seg done"></div><div class="tl-node done" title="Pilot"></div><div class="tl-seg done"></div><div class="tl-node done" title="In Publication"></div><div class="tl-seg done"></div><div class="tl-node active" title="Published"></div></div><div class="tl-current"><span class="tl-stage">Published</span><span class="tl-of">· stage 7 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Presents guidelines for data sharing platforms — guidance and principles to support interoperability and responsible data exchange across pathogens with epidemic and pandemic potential.</p>
+          <div class="card-tags"><span class="tag">Data Sharing</span><span class="tag">Governance</span><span class="tag">WHO</span></div>
+          <p class="card-meta"><strong>Published:</strong> 1 October 2025 &nbsp;·&nbsp; <strong>ISBN:</strong> 9789240113831</p>
+          <p class="card-meta"><strong>Partners:</strong> UKHSA · The Francis Crick Institute · University of Birmingham · University of Edinburgh</p>
+          <a class="card-link" href="https://pandemichub.who.int/publications/i/item/attributes-and-principles-of-genomic-data-sharing-platforms-supporting-surveillance-of-pathogens-with-epidemic-and-pandemic-potential" target="_blank">View publication →</a>
+        </div>
+
+
+        <div class="tool-card dat">
+          <div class="card-top">
+            <h3 class="card-title">Data Standards Repository</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node active" title="Concept / Planning"></div><div class="tl-seg "></div><div class="tl-node " title="TWG Established"></div><div class="tl-seg "></div><div class="tl-node " title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">Concept / Planning</span><span class="tl-of">· stage 1 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Helps countries structure their data — supporting standardization and harmonization of genomic and laboratory data. Prototype developed; on hold pending funding.</p>
+          <div class="card-tags"><span class="tag">Data Standards</span><span class="tag">Interoperability</span></div>
+          <p class="card-meta"><strong>Partners:</strong> PHA4GE</p>
+        </div>
+
+        <div class="tool-card dat">
+          <div class="card-top">
+            <h3 class="card-title">Tool Benchmark Platform</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node done" title="Concept / Planning"></div><div class="tl-seg done"></div><div class="tl-node done" title="TWG Established"></div><div class="tl-seg done"></div><div class="tl-node active" title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">In Development</span><span class="tl-of">· stage 3 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Helps countries make evidence-based choices when selecting bioinformatics tools, technologies, and platforms. Prototype currently under development.</p>
+          <div class="card-tags"><span class="tag">Benchmarking</span><span class="tag">Bioinformatics</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Oswaldo Cruz Foundation (Fiocruz)</p>
+        </div>
+
+        <div class="tool-card dat">
+          <div class="card-top">
+            <h3 class="card-title">Data Life Cycle Considerations</h3>
+            <div class="progress-timeline"><div class="tl-track"><div class="tl-node active" title="Concept / Planning"></div><div class="tl-seg "></div><div class="tl-node " title="TWG Established"></div><div class="tl-seg "></div><div class="tl-node " title="In Development"></div><div class="tl-seg "></div><div class="tl-node " title="In Review"></div><div class="tl-seg "></div><div class="tl-node " title="Pilot"></div><div class="tl-seg "></div><div class="tl-node " title="In Publication"></div><div class="tl-seg "></div><div class="tl-node " title="Published"></div></div><div class="tl-current"><span class="tl-stage">Concept / Planning</span><span class="tl-of">· stage 1 of 7</span></div></div>
+          </div>
+          <p class="card-summary">Supports countries to manage their data — across the entire lifecycle from collection, storage, and management through to sharing, analysis, and decision-making.</p>
+          <div class="card-tags"><span class="tag">Data Management</span><span class="tag">Governance</span></div>
+          <p class="card-meta"><strong>Partners:</strong> Oswaldo Cruz Foundation (Fiocruz) · PHA4GE</p>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- About -->
+  <div class="about-card">
+    <div class="about-header">About the IPSN Toolkit</div>
+    <div class="about-body">
+      <p>The <a href="https://www.who.int/initiatives/international-pathogen-surveillance-network" target="_blank">International Pathogen Surveillance Network (IPSN)</a> is a global network of pathogen genomic actors hosted by the WHO Hub for Pandemic and Epidemic Intelligence. IPSN accelerates progress on the deployment of pathogen genomics to improve public health decision-making in line with the Global Genomics Strategy for Pathogens with Pandemic and Epidemic Potential.</p>
+      <p>The toolkit is <strong>created by IPSN partners, for the whole network</strong>. Resources span WHO-driven products, partner-driven tools, and IPSN Secretariat–supported outputs. All WHO-branded products undergo full WHO clearance processes before publication.</p>
+      <p>For further information, contact the <a href="mailto:ipsn-secretariat@who.int">IPSN Secretariat</a>.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  <p>IPSN Toolkit · WHO Hub for Pandemic and Epidemic Intelligence, Berlin · Last updated June 2026</p>
+  <p>
+    <a href="https://www.who.int/initiatives/international-pathogen-surveillance-network" target="_blank">IPSN Website</a> ·
+    <a href="https://github.com/WHO-Collaboratory" target="_blank">WHO-Collaboratory on GitHub</a> ·
+    <a href="mailto:ipsn-secretariat@who.int">ipsn-secretariat@who.int</a>
+  </p>
+</footer>
+
+</body>
+</html>
