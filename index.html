@@ -299,7 +299,24 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { transition: none !important; }
     }
-  </style>
+  
+/* ── Partners section ──────────────────────────────────────────────── */
+.partners-section { background: #f0f4f8; border-top: 1px solid #d0dce8; padding: 32px 24px 24px; }
+.partners-section h2 { text-align: center; font-size: 0.9rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--who-dark); margin-bottom: 6px; }
+.partners-intro { text-align: center; font-size: 0.8rem; color: #555; margin-bottom: 24px; }
+.partners-group { margin-bottom: 20px; }
+.partners-group-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: #888; margin-bottom: 10px; text-align: center; }
+.partners-logos { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.partner-chip { display: flex; align-items: center; gap: 8px; background: #fff;
+  border: 1px solid #d0dce8; border-radius: 6px; padding: 6px 12px;
+  font-size: 0.78rem; color: var(--who-dark); font-weight: 500;
+  text-decoration: none; transition: box-shadow .15s; }
+.partner-chip:hover { box-shadow: 0 2px 8px rgba(0,78,110,.12); border-color: var(--who-blue-mid); }
+.partner-chip img { height: 22px; width: auto; max-width: 60px; object-fit: contain; }
+
+</style>
 </head>
 <body>
 
@@ -418,7 +435,7 @@
           </div>
           <p class="card-summary">Develops fit-for-purpose sampling strategies for pathogen genomics and surveillance activities.</p>
           <div class="card-tags"><span class="tag">Sampling</span><span class="tag">Surveillance</span><span class="tag">WHO</span></div>
-          <p class="card-meta"><strong>Partners:</strong> Doherty Institute</p>
+          <p class="card-meta"><strong>Partners:</strong> Charité Berlin · CPHL Uganda · Doherty Institute · INCIENSA · RIVM · University of Oxford</p>
         </div>
 
         <div class="tool-card cap">
@@ -428,7 +445,7 @@
           </div>
           <p class="card-summary">Helps plan for training and workforce development needs — guidance to help countries strengthen skills and competency requirements for genomics implementation.</p>
           <div class="card-tags"><span class="tag">Training</span><span class="tag">Workforce</span><span class="tag">WHO</span></div>
-          <p class="card-meta"><strong>Partners:</strong> Doherty Institute</p>
+          <p class="card-meta"><strong>Partners:</strong> Africa CDC · APHL · Doherty Institute · ECDC · Fiocruz · Institut Pasteur Sénégal · NIH Pakistan · NIH Thailand · PHA4GE · Public Health Wales · Robert Koch Institute · Wellcome Sanger</p>
         </div>
 
         <div class="tool-card cap">
@@ -567,6 +584,137 @@
   </div>
 
 </main>
+
+<section class="partners-section">
+  <h2>Toolkit Partners</h2>
+  <p class="partners-intro">The IPSN Toolkit is developed in collaboration with partners across public health agencies, academic institutions, and global health organisations.</p>
+  <div class="partners-logos">
+    <a class="partner-chip" href="https://africacdc.org/" target="_blank">
+      <img src="https://africacdc.org/wp-content/uploads/2020/02/AfricaCDC_Logo.png" alt="Africa CDC" onerror="this.style.display='none'" style="max-width:80px;">
+      Africa CDC
+    </a>
+    <a class="partner-chip" href="https://aphl.org/" target="_blank">
+      <img src="https://aphl.org/Aphl/img/APHL-logo.svg" alt="APHL" onerror="this.style.display='none'" style="max-width:80px;">
+      APHL
+    </a>
+    <a class="partner-chip" href="https://www.duke-nus.edu.sg/cop/asia-pathogen-genomics-initiative" target="_blank">
+      <img src="https://www.duke-nus.edu.sg/images/librariesprovider24/default-album/apgi-identity-cmyk-w-duke-nus-logo.png" alt="Asia PGI" onerror="this.style.display='none'" style="max-width:80px;">
+      Asia PGI
+    </a>
+    <a class="partner-chip" href="https://www.charite.de/en/" target="_blank">
+      Charité Berlin
+    </a>
+    <a class="partner-chip" href="https://cphl.go.ug/home-01" target="_blank">
+      CPHL Uganda
+    </a>
+    <a class="partner-chip" href="https://www.ecdc.europa.eu/en" target="_blank">
+      <img src="https://www.ecdc.europa.eu/profiles/custom/ecdc/themes/zika/build/images/logos/logo-ecdc.svg" alt="ECDC" onerror="this.style.display='none'" style="max-width:80px;">
+      ECDC
+    </a>
+    <a class="partner-chip" href="https://www.erasmusmc.nl" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Erasmus_University_Rotterdam_Stacked_logo_(Colour).png" alt="" onerror="this.style.display='none'">
+      Erasmus MC
+    </a>
+    <a class="partner-chip" href="https://www.finddx.org" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/FIND2_ok.jpg" alt="" onerror="this.style.display='none'">
+      FIND
+    </a>
+    <a class="partner-chip" href="https://portal.fiocruz.br" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Fiocruz.jpg" alt="" onerror="this.style.display='none'">
+      Fiocruz
+    </a>
+    <a class="partner-chip" href="https://www.icmr.gov.in" target="_blank">
+      ICMR–National Institute of Virology
+    </a>
+    <a class="partner-chip" href="https://www.inciensa.sa.cr/" target="_blank">
+      <img src="https://www.inciensa.sa.cr/wp-content/uploads/2024/12/inciensa_logo.png" alt="INCIENSA" onerror="this.style.display='none'" style="max-width:80px;">
+      INCIENSA
+    </a>
+    <a class="partner-chip" href="https://inrb.net/" target="_blank">
+      <img src="https://inrb.net/images/LOGO_SITE.png" alt="INRB" onerror="this.style.display='none'" style="max-width:80px;">
+      INRB
+    </a>
+    <a class="partner-chip" href="https://institutpasteurdakar.sn/" target="_blank">
+      Institut Pasteur Sénégal
+    </a>
+    <a class="partner-chip" href="https://ighresearch.org/en/" target="_blank">
+      <img src="https://ighresearch.org/en/wp-content/uploads/2025/01/IGH-Logo.png" alt="IGH" onerror="this.style.display='none'" style="max-width:80px;">
+      Institute of Genomics &amp; Global Health
+    </a>
+    <a class="partner-chip" href="https://www.nih.org.pk/" target="_blank">
+      <img src="https://www.nih.org.pk/img/logo/nih-logo.svg" alt="NIH Pakistan" onerror="this.style.display='none'" style="max-width:80px;">
+      National Institutes of Health Pakistan
+    </a>
+    <a class="partner-chip" href="https://nih.dmsc.moph.go.th/" target="_blank">
+      <img src="https://nih.dmsc.moph.go.th/front/template/default/assets/img/static/brand.png" alt="NIH Thailand" onerror="this.style.display='none'" style="max-width:80px;">
+      NIH Thailand
+    </a>
+    <a class="partner-chip" href="https://www.nphl.go.tz/" target="_blank">NPHL Tanzania</a>
+    <a class="partner-chip" href="https://www.doherty.edu.au" target="_blank">
+      <img src="https://aamri.org.au/wp-content/uploads/2019/08/Doherty-Institute-Website-size.jpg" alt="" onerror="this.style.display='none'" style="max-width:80px;">
+      Peter Doherty Institute
+    </a>
+    <a class="partner-chip" href="https://pha4ge.org" target="_blank">
+      <img src="https://pha4ge.org/wp-content/uploads/2025/07/PHA4GE-Logo-landscape-rgb-scaled.webp" alt="PHA4GE" onerror="this.style.display='none'" style="max-width:80px;">
+      PHA4GE
+    </a>
+    <a class="partner-chip" href="https://www.canada.ca/en/public-health.html" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/PHAC_wordmark.svg" alt="" onerror="this.style.display='none'">
+      Public Health Agency of Canada
+    </a>
+    <a class="partner-chip" href="https://phw.nhs.wales/" target="_blank">
+      <img src="https://phw.nhs.wales/app/uploads/sites/2/2025/02/phw-logo.svg" alt="Public Health Wales" onerror="this.style.display='none'" style="max-width:80px;">
+      Public Health Wales
+    </a>
+    <a class="partner-chip" href="https://www.rivm.nl/en" target="_blank">
+      <img src="https://www.rivm.nl/themes/custom/sdv_theme/logo.svg" alt="RIVM" onerror="this.style.display='none'" style="max-width:80px;">
+      RIVM
+    </a>
+    <a class="partner-chip" href="https://www.rki.de/" target="_blank">
+      <img src="https://www.rki.de/SiteGlobals/Frontend/Images/logo.svg" alt="Robert Koch Institute" onerror="this.style.display='none'" style="max-width:80px;">
+      Robert Koch Institute
+    </a>
+    <a class="partner-chip" href="https://www.sanbi.ac.za" target="_blank">
+      <img src="https://www.sanbi.ac.za/wp-content/uploads/2020/05/cropped-sanbi-horizontal_t1-308x73.png" alt="SANBI" onerror="this.style.display='none'" style="max-width:80px;">
+      SANBI
+    </a>
+    <a class="partner-chip" href="https://www.sfu.ca" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/SFU-block-logo.svg" alt="" onerror="this.style.display='none'">
+      Simon Fraser University
+    </a>
+    <a class="partner-chip" href="https://www.crick.ac.uk" target="_blank">The Francis Crick Institute</a>
+    <a class="partner-chip" href="https://www.gov.uk/government/organisations/uk-health-security-agency" target="_blank">
+      <img src="https://assets.publishing.service.gov.uk/media/674de56f20e5fc28f0a59fbb/s300_News_logo.png" alt="UKHSA" onerror="this.style.display='none'" style="max-width:80px;">
+      UKHSA
+    </a>
+    <a class="partner-chip" href="https://www.birmingham.ac.uk" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Shield_of_the_University_of_Birmingham.svg" alt="" onerror="this.style.display='none'">
+      University of Birmingham
+    </a>
+    <a class="partner-chip" href="https://www.ed.ac.uk" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/University_of_Edinburgh_arms.svg" alt="" onerror="this.style.display='none'">
+      University of Edinburgh
+    </a>
+    <a class="partner-chip" href="https://www.umn.edu" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/University_of_Minnesota_Logo.svg" alt="" onerror="this.style.display='none'">
+      University of Minnesota
+    </a>
+    <a class="partner-chip" href="https://www.ox.ac.uk/" target="_blank">
+      <img src="https://www.ox.ac.uk/themes/custom/numiko/dist/oxford-logo-DzIWfeXH.svg" alt="University of Oxford" onerror="this.style.display='none'" style="max-width:80px;">
+      University of Oxford
+    </a>
+    <a class="partner-chip" href="https://www.uwc.ac.za" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/UWC_Logo.svg" alt="" onerror="this.style.display='none'">
+      University of the Western Cape
+    </a>
+    <a class="partner-chip" href="https://www.sanger.ac.uk" target="_blank">
+      <img src="https://commons.wikimedia.org/wiki/Special:FilePath/Wellcome_Trust_logo.svg" alt="" onerror="this.style.display='none'">
+      Wellcome Sanger Institute
+    </a>
+  </div>
+</section>
+
+
 
 <footer>
   <p>IPSN Toolkit · WHO Hub for Pandemic and Epidemic Intelligence, Berlin · Last updated June 2026</p>
