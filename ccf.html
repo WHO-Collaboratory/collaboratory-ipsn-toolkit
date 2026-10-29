@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Country Capacity Framework – Interactive Tool</title>
+<style>
+:root {
+  --who-blue: #00709B;
+  --who-dark: #004A6E;
+  --who-light: #E8F4F9;
+  --navy: #1F2A50;
+  --m0: #9AA5B1;
+  --m1: #5B9DC3;
+  --m2: #1A82C0;
+  --m3: #1A5276;
+  --accent: #E67E22;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; color: #222; background: #f5f7f9; }
+a { color: var(--who-blue); }
+
+header { background: var(--who-dark); color: #fff; padding: 14px 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.brand { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; min-width: 0; }
+.logo { font-size: 20px; font-weight: 700; }
+.subtitle { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.head-links { margin-left: auto; font-size: 12px; }
+.head-links a { color: #fff; opacity: 0.85; text-decoration: none; }
+.head-links a:hover { opacity: 1; text-decoration: underline; }
+
+.toolbar { display: flex; align-items: center; gap: 10px; padding: 8px 16px; background: #fff; border-bottom: 2px solid #ddd; flex-wrap: wrap; position: sticky; top: 0; z-index: 30; }
+.toolbar label { font-size: 12px; color: #555; font-weight: 600; }
+.toolbar select, .toolbar input[type=text], .toolbar input[type=search] { font-size: 12px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; font-family: inherit; }
+.toolbar input[type=search] { width: 200px; }
+.mode-switch { display: inline-flex; border: 1px solid var(--who-blue); border-radius: 4px; overflow: hidden; }
+.mode-switch button { font: inherit; font-size: 12px; font-weight: 600; padding: 5px 12px; border: 0; background: #fff; color: var(--who-blue); cursor: pointer; }
+.mode-switch button.on { background: var(--who-blue); color: #fff; }
+.btn { font: inherit; font-size: 12px; font-weight: 600; padding: 5px 10px; border: 1px solid #ccc; border-radius: 4px; background: #fff; color: #333; cursor: pointer; }
+.btn:hover { background: #f0f0f0; }
+.btn.primary { background: var(--who-blue); border-color: var(--who-blue); color: #fff; }
+.btn.primary:hover { background: var(--who-dark); }
+.spacer { flex: 1; }
+.assess-only { display: none !important; }
+body.assess .assess-only { display: inline-flex !important; }
+body.assess .assess-only.blk { display: block !important; }
+
+.layout { display: flex; align-items: flex-start; gap: 16px; padding: 14px 16px 40px; }
+.main { flex: 1; min-width: 0; }
+
+.intro { background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; line-height: 1.55; font-size: 12.5px; color: #333; }
+.intro h2 { font-size: 14px; color: var(--who-dark); margin-bottom: 4px; }
+.intro p + p { margin-top: 6px; }
+.intro .how { background: var(--who-light); border-left: 3px solid var(--who-blue); padding: 8px 12px; margin-top: 8px; border-radius: 0 4px 4px 0; }
+
+/* Framework grid */
+.grid { display: grid; grid-template-columns: 170px repeat(3, minmax(0, 1fr)); gap: 3px; }
+.gh { position: sticky; top: 44px; z-index: 10; background: var(--navy); color: #fff; padding: 10px 12px; border-radius: 3px; }
+.gh.corner { background: #f5f7f9; color: #555; font-size: 11px; font-weight: 600; display: flex; align-items: flex-end; }
+.gh .mname { font-size: 13.5px; font-weight: 700; display: flex; align-items: center; gap: 7px; }
+.gh .mdef { font-size: 11px; font-weight: 400; opacity: 0.85; line-height: 1.4; margin-top: 5px; }
+.gh .mdef.collapsed { display: none; }
+.dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; border: 1.5px solid rgba(255,255,255,0.7); }
+.dot.m1 { background: var(--m1); } .dot.m2 { background: var(--m2); } .dot.m3 { background: var(--m3); }
+
+.cat-row { grid-column: 1 / -1; background: var(--who-dark); color: #fff; font-weight: 700; font-size: 11px; padding: 6px 12px; letter-spacing: 0.4px; text-transform: uppercase; border-radius: 3px; margin-top: 6px; display: flex; align-items: center; gap: 10px; }
+.cat-row .cat-desc { font-weight: 400; text-transform: none; letter-spacing: 0; opacity: 0.8; font-size: 11px; }
+.cat-row .cat-score { margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+
+.ind { background: #fff; border: 1px solid #e5e5e5; border-radius: 3px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.ind-name { font-weight: 700; color: var(--who-blue); font-size: 13px; line-height: 1.25; }
+.ind-num { font-size: 10px; color: #888; font-weight: 600; }
+.none-btn { font: inherit; font-size: 11px; text-align: left; padding: 5px 7px; border: 1px dashed #bbb; border-radius: 4px; background: #fafafa; color: #555; cursor: pointer; line-height: 1.3; }
+.none-btn:hover { background: #f0f0f0; }
+.none-btn.sel { border: 2px solid var(--m0); background: #eef0f2; color: #333; font-weight: 600; }
+.note-btn { font: inherit; font-size: 11px; color: var(--who-blue); background: none; border: 0; cursor: pointer; text-align: left; padding: 0; }
+.note-btn:hover { text-decoration: underline; }
+.note-area { width: 100%; font: inherit; font-size: 11.5px; border: 1px solid #ccc; border-radius: 4px; padding: 5px; resize: vertical; min-height: 54px; display: none; }
+.note-area.open { display: block; }
+
+.cell { background: #fff; border: 2px solid #e5e5e5; border-radius: 3px; padding: 10px 12px; line-height: 1.5; font-size: 12.3px; color: #333; position: relative; }
+.cell p + p { margin-top: 6px; }
+.cell .mlabel { display: none; font-size: 10.5px; font-weight: 700; color: var(--who-dark); text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+body.assess .cell { cursor: pointer; transition: border-color .1s, background .1s; }
+body.assess .cell:hover { border-color: #9cc6dd; background: #fbfdff; }
+.cell.sel, .cell.next { padding-top: 22px; }
+.cell.sel { border-color: var(--accent) !important; background: #FFF8F0 !important; }
+.cell.sel::after { content: '✓ Current capacity'; position: absolute; top: -2px; right: -2px; background: var(--accent); color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 0 3px 0 6px; }
+.cell.next { border-style: dashed; border-color: #5B9DC3; }
+.cell.next::after { content: 'Next step'; position: absolute; top: -2px; right: -2px; background: #5B9DC3; color: #fff; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 0 3px 0 6px; }
+mark { background: #FFE58A; padding: 0 1px; border-radius: 2px; }
+.hidden-row { display: none !important; }
+
+/* Results panel */
+.results { width: 330px; min-width: 330px; position: sticky; top: 56px; background: #fff; border: 1px solid #ddd; border-radius: 6px; overflow: hidden; max-height: calc(100vh - 72px); overflow-y: auto; }
+.res-head { background: var(--who-dark); color: #fff; padding: 12px 14px; }
+.res-head h3 { font-size: 14px; }
+.res-head .sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.res-body { padding: 12px 14px; }
+.progress { height: 6px; background: #e8e8e8; border-radius: 3px; overflow: hidden; margin: 6px 0 4px; }
+.progress > div { height: 100%; background: var(--who-blue); transition: width .2s; }
+.small { font-size: 11px; color: #666; }
+.closest { margin: 12px 0; padding: 10px 12px; border-radius: 5px; background: var(--who-light); border-left: 3px solid var(--who-blue); }
+.closest .lbl { font-size: 10.5px; font-weight: 700; text-transform: uppercase; color: var(--who-dark); letter-spacing: 0.3px; }
+.closest .val { font-size: 16px; font-weight: 700; color: var(--who-dark); margin-top: 2px; }
+.closest .why { font-size: 11px; color: #555; margin-top: 3px; line-height: 1.4; }
+.sec-hd { font-weight: 700; font-size: 12px; color: var(--who-dark); margin: 14px 0 7px; border-bottom: 2px solid var(--who-light); padding-bottom: 4px; }
+.bar-row { display: flex; align-items: center; gap: 7px; margin-bottom: 5px; font-size: 11.5px; }
+.bar-row .bl { width: 110px; flex-shrink: 0; color: #444; }
+.bar-row .bt { flex: 1; height: 14px; background: #f0f0f0; border-radius: 2px; overflow: hidden; display: flex; }
+.bar-row .bn { width: 22px; text-align: right; font-weight: 600; color: #333; }
+.seg-m0, .profile .pc.seg-m0 { background: var(--m0); } .seg-m1, .profile .pc.seg-m1 { background: var(--m1); }
+.seg-m2, .profile .pc.seg-m2 { background: var(--m2); } .seg-m3, .profile .pc.seg-m3 { background: var(--m3); }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 4px; vertical-align: -1px; }
+.profile { display: grid; grid-template-columns: 1fr repeat(4, 18px); gap: 2px 3px; font-size: 11px; align-items: center; }
+.profile .ph { font-size: 9px; color: #777; text-align: center; font-weight: 600; }
+.profile .pn { color: #333; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+.profile .pn:hover { color: var(--who-blue); text-decoration: underline; }
+.profile .pc { height: 14px; border-radius: 2px; background: #f1f1f1; }
+.profile .pcat { grid-column: 1 / -1; font-size: 10px; font-weight: 700; color: var(--who-dark); text-transform: uppercase; margin-top: 5px; letter-spacing: 0.3px; }
+.gap-item { border: 1px solid #e3e3e3; border-radius: 5px; padding: 8px 10px; margin-bottom: 7px; font-size: 11.5px; line-height: 1.45; }
+.gap-item .gi-hd { font-weight: 700; color: #1A3E5C; display: flex; justify-content: space-between; gap: 6px; }
+.gap-item .gi-to { font-size: 10px; font-weight: 700; color: #fff; background: #5B9DC3; padding: 1px 6px; border-radius: 8px; white-space: nowrap; align-self: flex-start; }
+.gap-item .gi-txt { color: #555; margin-top: 4px; }
+.res-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.empty-msg { color: #888; font-style: italic; font-size: 11.5px; }
+.disclaimer { font-size: 10.5px; color: #777; line-height: 1.45; margin-top: 12px; }
+
+footer { text-align: center; font-size: 11px; color: #777; padding: 16px; border-top: 1px solid #ddd; background: #fff; }
+
+/* Responsive: stack cells as cards */
+@media (max-width: 1100px) {
+  .layout { flex-direction: column; }
+  .results { width: 100%; min-width: 0; position: static; max-height: none; }
+}
+@media (max-width: 760px) {
+  .layout { padding: 12px 16px 30px; }
+  .grid { grid-template-columns: 1fr; }
+  .gh { display: none; }
+  .cell .mlabel { display: block; }
+  .ind { margin-top: 6px; }
+  .toolbar { position: static; }
+  .toolbar input[type=search] { width: 100%; }
+  .head-links { margin-left: 0; }
+  header img { height: 36px !important; }
+  .mode-switch { width: 100%; }
+  .mode-switch button { flex: 1; }
+}
+
+@media print {
+  header, .toolbar, .intro .how, .none-btn:not(.sel), .note-btn, .res-actions { display: none !important; }
+  body { background: #fff; }
+  .layout { display: block; padding: 0; }
+  .results { width: 100%; position: static; max-height: none; border: 0; page-break-after: always; }
+  .gh { position: static; }
+  .cell, .ind { break-inside: avoid; }
+  .note-area.has-text { display: block; border: 0; padding: 0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <img src="https://who-collaboratory.github.io/collaboratory-ebola-genomics-community/img/ipsn.png"
+         alt="IPSN logo" style="height:48px;" onerror="this.style.display='none'" />
+    <div>
+      <div class="logo">Country Capacity Framework</div>
+      <div class="subtitle">Pathogen Genomic Surveillance — Table A.1 capacity models, categories and indicators, with self-assessment</div>
+    </div>
+  </div>
+  <div class="head-links"><a href="index.html">← IPSN Toolkit</a></div>
+</header>
+
+<div class="toolbar">
+  <div class="mode-switch" role="tablist">
+    <button id="modeBrowse" class="on" role="tab">Browse framework</button>
+    <button id="modeAssess" role="tab">Self-assessment</button>
+  </div>
+  <label for="catFilter">Category:</label>
+  <select id="catFilter"><option value="all">All categories</option></select>
+  <input type="search" id="search" placeholder="Search text (e.g. QA, bioinformatics)…" />
+  <span class="spacer"></span>
+  <span class="assess-only" style="align-items:center;gap:6px;">
+    <label for="country">Country / setting:</label>
+    <input type="text" id="country" placeholder="optional" style="width:140px" />
+  </span>
+  <button class="btn" id="toggleDefs">Hide model definitions</button>
+</div>
+
+<div class="layout">
+  <div class="main">
+    <div class="intro">
+      <h2>About the CCF</h2>
+      <p>The Country Capacity Framework (CCF) describes three indicative country capacity models for pathogen genomic surveillance (PGS) — <strong>Hybrid domestic</strong>, <strong>Integrated domestic</strong> and <strong>Regional/global support</strong>. For each model, capacities are described across four categories and 14 indicators. The models are indicative: a country may align with different models across different indicators.</p>
+      <p>Countries can use the CCF to conduct a situation analysis, plan the development of core capacities, identify gaps or opportunities for the next best investment, and cost and prioritize investments.</p>
+      <div class="how assess-only blk">
+        <strong>How to self-assess:</strong> for each indicator, click the description that best matches your <em>current</em> capacity (or <em>“Not yet in place”</em> if none apply). The panel shows the closest overall model, a profile by category, and the next-step capacity for each indicator. Your answers are saved in this browser only.
+      </div>
+    </div>
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <aside class="results assess-only blk" id="results">
+    <div class="res-head">
+      <h3 id="resTitle">Assessment summary</h3>
+      <div class="sub">Indicative closest capacity model</div>
+    </div>
+    <div class="res-body" id="resBody"></div>
+  </aside>
+</div>
+
+<footer>
+  Source: <em>Country capacity framework for pathogen genomic surveillance</em>, Table A.1 — WHO Health Emergencies Programme / International Pathogen Surveillance Network (IPSN).
+  Part of the <a href="index.html">IPSN Toolkit</a>.
+</footer>
+
+<script>
+const MODELS = [
+  { id: 1, key: 'hybrid', name: 'Hybrid domestic capacity', short: 'Hybrid domestic',
+    def: 'Leverages partner sequencing and surveillance resources to use genomics for public health decision-making, with limited to no domestic sequencing for monitoring priority pathogens.' },
+  { id: 2, key: 'integrated', name: 'Integrated domestic capacity', short: 'Integrated domestic',
+    def: 'Leverages partner resources for strategic support, R&D, supply chain consolidation, and QA, to supplement full domestic sequencing for monitoring priority pathogens.' },
+  { id: 3, key: 'regional', name: 'Regional/global support capacity', short: 'Regional/global support',
+    def: 'Coordinates regional or global surveillance efforts; provides strategic leadership and support for training, R&D, QA, sequencing, and rapid scale-up; and funds donor programmes to enable partner priorities.' }
+];
+
+// Table A.1 — each indicator holds one array of paragraphs per model [hybrid, integrated, regional/global]
+const CATEGORIES = [
+  { id: 'gov', name: 'Governance', desc: 'Strategic leadership and planning, budgeting and financing, national distribution of capacities',
+    indicators: [
+      { id: 'slp', name: 'Strategic Leadership & Planning', cells: [
+        ['National disease control strategy includes pathogen genomic surveillance (PGS) capacities for priority pathogens – genomic surveillance targets, sampling framework, data analysis and sharing framework – and outbreak management plans.',
+         'Relevant partnership agreements (such as technical working groups) are established to enable and support PGS capacities.'],
+        ['National disease control strategy includes a research agenda for genomic surveillance and use of PGS data.',
+         'An expert panel or technical advisory group is appointed to advise on genomic surveillance approaches, data interpretation, and data use for research.'],
+        ['Agreements to support regional or global partner networking, training, outbreak management (e.g. pandemic preparedness and response protocols), research, and strategic planning.']
+      ]},
+      { id: 'bf', name: 'Budgeting & Financing', cells: [
+        ['Strategic plan for PGS capacity has been costed, and sufficient funding is secured (e.g. domestic budgets, donors, academic grants) to support key PGS processes for 1–4 years.'],
+        ['Sufficient and sustainable funding for PGS is secured (e.g. domestic budgets, donors, academic grants) to support key processes for 5+ years.'],
+        ['Funding to support regional and global partner networking, training, outbreak management (e.g. pandemic preparedness and response protocols), research, and strategic planning.',
+         'Leads development of and advocacy for the economic case for PGS.']
+      ]},
+      { id: 'ndc', name: 'National Distribution of Capacities', cells: [
+        ['Designated reference laboratories with public health responsibility across human and animal health act as genomic surveillance coordinator or sequencing hub.'],
+        ['Large/country with a federal health system have a network of distributed laboratories connected by a central node that provides QA, training, supply chain, analytics, and strategic guidance to sub-national hubs.',
+         'Small/country with a centralized health system have a single, centralized sequencing hub laboratory.'],
+        ['Strong nationally distributed capabilities and scientific assets in genomics, with capacity to support regional and global needs.']
+      ]}
+    ]},
+  { id: 'hpa', name: 'Human & Physical Assets', desc: 'Workforce, supply chain, IT infrastructure, surge capacity',
+    indicators: [
+      { id: 'wf', name: 'Workforce', cells: [
+        ['Laboratories leveraging partner resources for sequencing, bioinformatics, and analysis: lab personnel trained to sample and ship infectious disease samples, surveillance officer(s) to coordinate processing with partners.',
+         'Laboratories leveraging partner resources for bioinformatics, integrated analysis, and/or enhanced analysis: molecular scientist(s), IT technician(s) to support data transfer to partners, and bioinformatics trained personnel.'],
+        ['National hub laboratory is staffed with bioinformatician(s), molecular scientist(s), and genomic epidemiologist(s).',
+         'All sequencing labs are staffed with laboratory molecular scientist(s), data genomic analyst(s), and bioinformatics trained personnel.'],
+        ['Skilled end-to-end multidisciplinary genomic surveillance workforce with ability to recruit, retain, and develop surge capacity during emergencies.',
+         'Leads workforce training for partners, including training of trainers; and coordinates and promotes communities of practice and knowledge exchange.']
+      ]},
+      { id: 'sc', name: 'Supply Chain', cells: [
+        ['Central public health laboratory for PGS coordinates procurement of supplies (sequencing machines, reagents, non-reagent consumables) and supply forecasting, with partner support.',
+         'Countries undertaking sequencing domestically, are progressing toward ensuring direct purchasing from manufacturers or distributors.',
+         'Technical support, maintenance, and stocking is readily available and reliable.'],
+        ['Public health laboratories conducting PGS have direct relationships with suppliers (for some items) that can reliably provide supplies for capacity established in the national strategy and can scale up during emergencies.',
+         'Procurement for some other items could be done through partners to reduce costs and align with regional surveillance priorities.',
+         'Template documentation is in place – import licenses, service level agreements (SLAs) with shippers and supplier – for partner countries.'],
+        ['Coordinates regional and global supply networks to reduce costs, increase availability, and drive harmonized strategic deployment of use cases across the region. Has the ability to expedite procurement (e.g., kits, reagents) when needed.',
+         'Template documentation is in place – import licenses, service level agreements (SLAs) with shippers and supplier – for partner countries.']
+      ]},
+      { id: 'it', name: 'IT Infrastructure', cells: [
+        ['Laboratories leveraging partner resources for bioinformatics and analysis: basic IT infrastructure to support sample management; reliable IT connectivity; and established IT mechanism to share genomic data files with partners.',
+         'Laboratories leveraging partner resources for bioinformatics, integrated analysis, and/or enhanced analysis: data storage capacity (with back up, security); computer hardware and systems administration (including maintenance); computational infrastructure with robust and reproducible workflows and pipelines.'],
+        ['National hub laboratory: Access to IT infrastructure to support sample management; data storage capacity (with backup, security); computer hardware and systems administration (including maintenance); access to computational infrastructure according to sequencing capacity with robust and reproducible analytical workflows and pipelines; reliable IT connectivity and established mechanism (e.g., cloud-based) to share genomic data files with partners.',
+         'Where provincial nodes exist, they have reliable IT connectivity and as described in the hybrid capacity indicator.'],
+        ['All laboratories conducting PGS have access to advanced computational infrastructure and server capacity to provide partners with data storage and processing surge capacity.']
+      ]},
+      { id: 'surge', name: 'Surge Capacity', cells: [
+        ['Regularly perform readiness exercises (Intra Action and After Action Reviews) in coordination with partners.'],
+        ['Regularly participate in external readiness exercises (Intra Action and After Action Reviews, simulation exercises).'],
+        ['Supports partner readiness exercises (Intra Action and After Action Reviews, simulation exercises) and develops best practices and shared lessons learned.']
+      ]}
+    ]},
+  { id: 'pmci', name: 'Process Management & Continuous Improvement', desc: 'Process guidelines, sample collection and management, quality assurance, R&D',
+    indicators: [
+      { id: 'pg', name: 'Process Guidelines', cells: [
+        ['Processing SOPs adopted and adapted from partners for: sampling, pre-processing, data processing and bioinformatics, and data analysis and sharing.'],
+        ['Adopts best-practice guidelines and SOPs from partners; and could contribute to development of regional/global guidelines for SOP development as applicable.'],
+        ['Develops adaptable resources (e.g., best practice guidelines and SOPs), and advocates for adoption, through collaborative processes at the regional and/or global levels.']
+      ]},
+      { id: 'scm', name: 'Sample Collection and Management', cells: [
+        ['Adopt a sequencing sampling strategy that is targeted (geographical and temporal) for every One Health domain (human, animal, and environment).',
+         'Processes for safe and timely sample transfer to central facility or partner(s) are in place, along with trained laboratory staff and partnership agreements.'],
+        ['There is a sequencing sampling strategy that is targeted (geographical and temporal) for every One Health domain (human, animal, and environment).',
+         'Trained staff and processes are in place for quick turnaround time for sample processing.'],
+        ['Manages regional sample shipping and coordination.',
+         'Develops guidance for sample collection and shipping.']
+      ]},
+      { id: 'qa', name: 'Quality Assurance', cells: [
+        ['All laboratories participating in PGS have internal systems of review for quality assurance, including self-analysis, quality plan, monitoring, evaluation, and self-correction.',
+         'All laboratories participating in PGS are enrolled in external quality assessment programme.'],
+        ['National QA programme ensures all laboratories participating in PGS, and bioinformatics pipelines, have a system for continuous improvement and to enable corrective actions.',
+         'Laboratories conducting PGS have participated in EQA and been certified or accredited by internationally recognized programs (e.g. CAP, ISO, CLIA, GLP, etc.); and have EQAs with partners in place.'],
+        ['Provides external quality assessment and quality management system to partners.',
+         'Certifies all aspects of PGS from sampling to data operations, for partners.']
+      ]},
+      { id: 'rd', name: 'R&D', cells: [
+        ['Identifies local priorities for domestic research programmes, focused on defining use case models for genomic surveillance in the country setting.',
+         'Contributes to research programmes led by regional and global partners.'],
+        ['Leads domestic research programmes, with support from partners as needed, focused on transforming multi-pathogen products to low-cost, accessible, and standardized genomic surveillance products; or defining implementation approaches/best practice methods for PGS of priority pathogens in country setting.'],
+        ['Leads regional and global research programmes, with country partnerships, focused on continued improvement and scalability of genomic surveillance products, and development of new products and services, vaccines, and therapeutics.']
+      ]}
+    ]},
+  { id: 'dadm', name: 'Data Analysis & Decision-Making', desc: 'Data governance and sharing, data analysis and reporting, public health decision-making',
+    indicators: [
+      { id: 'dgs', name: 'Data Governance & Sharing', cells: [
+        ['Material transfer agreements or data governance frameworks are established between submitting laboratories and partner laboratories, outlining arrangements for sharing data (e.g. genome sequencing, deidentified metadata, raw sequence data files).',
+         'Genomic surveillance and sequencing results are shared nationally (local, in-country partners stakeholders) and in public, international databases.'],
+        ['National data governance body with legal powers to determine rules around data collection and sharing is in place and publishes clear guidelines.',
+         'Genomic surveillance data shared nationally (across levels of government and with in-country partners), internationally (data made publicly available to PH databases), and with academic partners.'],
+        ['Facilitates sharing of genomic data to support partners where needed.',
+         'Data collected on behalf of partners is handled according to material transfer agreement and is given equal priority to domestic sequences in the speed of analysis and sharing.',
+         'Accesses public repositories, and closed databases of partners, through secure and interoperable systems.',
+         'Develops standards and best practices on data sharing and governance.']
+      ]},
+      { id: 'dar', name: 'Data Analysis & Reporting', cells: [
+        ['Reporting structures, pathways and mechanisms have been agreed between laboratories generating genomic data and responsible partner(s).',
+         'Genomic surveillance results are reported from the laboratory to public health agencies, in conjunction with epidemiological findings, for routine surveillance and for notifiable diseases or events.'],
+        ['Reporting structures, pathways and mechanisms have been agreed between laboratories generating genomic data and epidemiological and surveillance teams in public health agencies.',
+         'Patient data (clinical data such as severity, vaccination status, hospitalization etc. and meta-data such as epidemiological context, demographic data etc.) management and linking to resulting genomes is partially (laboratory information system (LIS) or laboratory information management (LIM) with separate tagging and storage of genome data) or fully integrated (LIS/LIM).'],
+        ['Processes for engaging with submitting laboratories and relevant public health institutions to facilitate data analysis and reporting for partner countries are established in partnership agreements.',
+         'Develops tools and templates for data analysis, visualization, synthesis, linking and reporting.']
+      ]},
+      { id: 'phdm', name: 'Public Health Decision-Making', cells: [
+        ['For timely and evidence-based application of genomics for outbreak investigation and emergencies, public health agency surveillance teams understand and interpret genomic surveillance results and have support from partners for integration and interpretation of genomic and epidemiological data, as necessary.'],
+        ['For timely and evidence-based application of genomics for outbreak investigation and emergencies, public health agency surveillance teams are responsible for receiving, interpreting and reporting on genomic surveillance results in broader disease surveillance structures.'],
+        ['Performs timely and evidence-based application of genomics for outbreak investigation and emergencies.',
+         'Timely sharing of good practices globally on applications of genomic data for public health decision-making and for informing policy.',
+         'Conducts research into historical effectiveness of public health measures and develops best practices in knowledge management, evidence-based decision-making, and measures using genomics and metadata to inform public health actions.',
+         'Supports and trains partner countries in results interpretation and public health decision-making.',
+         'Builds links between national public health institutes and academic institutes to commission rapid research and disseminate findings at global and national levels to inform global response.']
+      ]}
+    ]}
+];
+
+const INDICATORS = CATEGORIES.flatMap(c => c.indicators.map(i => ({ ...i, cat: c })));
+const LEVEL_NAMES = ['Not yet in place', ...MODELS.map(m => m.short)];
+const STORE_KEY = 'ipsn-ccf-assessment-v1';
+
+// ── state ────────────────────────────────────────────────
+let state = { answers: {}, notes: {}, country: '' };
+try { state = Object.assign(state, JSON.parse(localStorage.getItem(STORE_KEY) || '{}')); } catch (e) {}
+function save() { try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {} }
+
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+// ── render grid ──────────────────────────────────────────
+const grid = document.getElementById('grid');
+function renderGrid() {
+  let h = '<div class="gh corner">Capacity indicators</div>';
+  MODELS.forEach(m => {
+    h += `<div class="gh"><div class="mname"><span class="dot m${m.id}"></span>${m.name}</div><div class="mdef">${m.def}</div></div>`;
+  });
+  let n = 0;
+  CATEGORIES.forEach(c => {
+    h += `<div class="cat-row" data-cat="${c.id}">${c.name}<span class="cat-desc">${c.desc}</span><span class="cat-score assess-only" id="cs-${c.id}"></span></div>`;
+    c.indicators.forEach(ind => {
+      n++;
+      h += `<div class="ind" data-cat="${c.id}" data-ind="${ind.id}">
+        <div><div class="ind-num">Indicator ${n} of 14</div><div class="ind-name">${ind.name}</div></div>
+        <button class="none-btn assess-only" data-ind="${ind.id}" data-level="0">Not yet in place</button>
+        <button class="note-btn assess-only" data-ind="${ind.id}">+ Add note</button>
+        <textarea class="note-area" id="note-${ind.id}" placeholder="Evidence, gaps, comments…"></textarea>
+      </div>`;
+      ind.cells.forEach((paras, i) => {
+        h += `<div class="cell" data-cat="${c.id}" data-ind="${ind.id}" data-level="${i + 1}" tabindex="-1">
+          <div class="mlabel">${MODELS[i].name}</div>${paras.map(p => `<p data-raw="${esc(p)}">${esc(p)}</p>`).join('')}</div>`;
+      });
+    });
+  });
+  grid.innerHTML = h;
+}
+renderGrid();
+
+const catSel = document.getElementById('catFilter');
+CATEGORIES.forEach(c => catSel.insertAdjacentHTML('beforeend', `<option value="${c.id}">${c.name}</option>`));
+
+// ── filters ──────────────────────────────────────────────
+function applyFilters() {
+  const cat = catSel.value;
+  const q = document.getElementById('search').value.trim().toLowerCase();
+  const re = q ? new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi') : null;
+  CATEGORIES.forEach(c => {
+    let anyVisible = false;
+    c.indicators.forEach(ind => {
+      const els = grid.querySelectorAll(`[data-ind="${ind.id}"].cell, [data-ind="${ind.id}"].ind`);
+      const text = (ind.name + ' ' + ind.cells.flat().join(' ')).toLowerCase();
+      const show = (cat === 'all' || cat === c.id) && (!q || text.includes(q));
+      els.forEach(el => el.classList.toggle('hidden-row', !show));
+      if (show) anyVisible = true;
+      grid.querySelectorAll(`.cell[data-ind="${ind.id}"] p`).forEach(p => {
+        const raw = esc(p.dataset.raw);
+        p.innerHTML = re ? raw.replace(re, m => `<mark>${m}</mark>`) : raw;
+      });
+    });
+    grid.querySelector(`.cat-row[data-cat="${c.id}"]`).classList.toggle('hidden-row', !anyVisible);
+  });
+}
+catSel.addEventListener('change', applyFilters);
+document.getElementById('search').addEventListener('input', applyFilters);
+
+document.getElementById('toggleDefs').addEventListener('click', e => {
+  const defs = grid.querySelectorAll('.mdef');
+  const hide = !defs[0].classList.contains('collapsed');
+  defs.forEach(d => d.classList.toggle('collapsed', hide));
+  e.target.textContent = hide ? 'Show model definitions' : 'Hide model definitions';
+});
+
+// ── mode ─────────────────────────────────────────────────
+function setMode(assess) {
+  document.body.classList.toggle('assess', assess);
+  document.getElementById('modeAssess').classList.toggle('on', assess);
+  document.getElementById('modeBrowse').classList.toggle('on', !assess);
+  history.replaceState(null, '', assess ? '#assess' : location.pathname + location.search);
+  refresh();
+}
+document.getElementById('modeBrowse').addEventListener('click', () => setMode(false));
+document.getElementById('modeAssess').addEventListener('click', () => setMode(true));
+
+// ── assessment interactions ──────────────────────────────
+grid.addEventListener('click', e => {
+  if (!document.body.classList.contains('assess')) return;
+  const noteBtn = e.target.closest('.note-btn');
+  if (noteBtn) {
+    const ta = document.getElementById('note-' + noteBtn.dataset.ind);
+    ta.classList.toggle('open');
+    if (ta.classList.contains('open')) ta.focus();
+    return;
+  }
+  const target = e.target.closest('.cell, .none-btn');
+  if (!target || window.getSelection().toString()) return;
+  const ind = target.dataset.ind, lvl = +target.dataset.level;
+  if (state.answers[ind] === lvl) delete state.answers[ind]; else state.answers[ind] = lvl;
+  save(); refresh();
+});
+grid.addEventListener('input', e => {
+  if (!e.target.classList.contains('note-area')) return;
+  const ind = e.target.id.slice(5);
+  if (e.target.value.trim()) state.notes[ind] = e.target.value; else delete state.notes[ind];
+  e.target.classList.toggle('has-text', !!e.target.value.trim());
+  save();
+});
+const countryInput = document.getElementById('country');
+countryInput.value = state.country || '';
+countryInput.addEventListener('input', () => { state.country = countryInput.value; save(); updateTitle(); });
+function updateTitle() {
+  document.getElementById('resTitle').textContent = state.country.trim() ? `Assessment: ${state.country.trim()}` : 'Assessment summary';
+}
+
+INDICATORS.forEach(ind => {
+  const ta = document.getElementById('note-' + ind.id);
+  if (state.notes[ind.id]) { ta.value = state.notes[ind.id]; ta.classList.add('open', 'has-text'); }
+});
+
+// ── scoring ──────────────────────────────────────────────
+function compute() {
+  const answered = INDICATORS.filter(i => state.answers[i.id] !== undefined);
+  const counts = [0, 0, 0, 0];
+  answered.forEach(i => counts[state.answers[i.id]]++);
+  const mean = answered.length ? answered.reduce((s, i) => s + state.answers[i.id], 0) / answered.length : 0;
+  return { answered, counts, mean };
+}
+
+function closestModel({ answered, counts, mean }) {
+  if (!answered.length) return null;
+  // Closest model = level nearest to the mean score (ties broken towards the most frequent level)
+  let best = 0, bestD = Infinity;
+  for (let l = 0; l <= 3; l++) {
+    const d = Math.abs(mean - l) - counts[l] * 1e-3;
+    if (d < bestD) { bestD = d; best = l; }
+  }
+  return best;
+}
+
+function refresh() {
+  // grid selection state
+  grid.querySelectorAll('.cell, .none-btn').forEach(el => {
+    const a = state.answers[el.dataset.ind];
+    const lvl = +el.dataset.level;
+    el.classList.toggle('sel', a === lvl);
+    el.classList.toggle('next', el.classList.contains('cell') && a !== undefined && lvl === a + 1);
+  });
+  grid.querySelectorAll('.note-btn').forEach(b => {
+    b.textContent = state.notes[b.dataset.ind] ? 'Edit note' : '+ Add note';
+  });
+  CATEGORIES.forEach(c => {
+    const done = c.indicators.filter(i => state.answers[i.id] !== undefined);
+    const el = document.getElementById('cs-' + c.id);
+    if (!done.length) { el.textContent = `0 / ${c.indicators.length} assessed`; return; }
+    const m = done.reduce((s, i) => s + state.answers[i.id], 0) / done.length;
+    el.textContent = `${done.length} / ${c.indicators.length} assessed · mean ${m.toFixed(1)}`;
+  });
+  updateTitle();
+  renderResults();
+}
+
+function renderResults() {
+  const r = compute();
+  const pct = Math.round(r.answered.length / INDICATORS.length * 100);
+  const cm = closestModel(r);
+  let h = `<div class="small">${r.answered.length} of ${INDICATORS.length} indicators assessed</div>
+    <div class="progress"><div style="width:${pct}%"></div></div>`;
+
+  if (cm === null) {
+    h += `<p class="empty-msg" style="margin-top:10px">Click a description in each row of the table to record your current capacity.</p>`;
+  } else {
+    const why = `Mean score ${r.mean.toFixed(2)} on a 0–3 scale (0 = not yet in place, 1 = hybrid, 2 = integrated, 3 = regional/global).` +
+      (r.answered.length < INDICATORS.length ? ' Provisional — not all indicators assessed.' : '');
+    h += `<div class="closest"><div class="lbl">Closest capacity model</div>
+      <div class="val">${cm === 0 ? 'Below hybrid domestic' : MODELS[cm - 1].name}</div>
+      <div class="why">${why}</div></div>`;
+
+    h += `<div class="sec-hd">Indicators by model</div>`;
+    [1, 2, 3, 0].forEach(l => {
+      h += `<div class="bar-row"><span class="bl"><span class="swatch seg-m${l}"></span>${LEVEL_NAMES[l]}</span>
+        <span class="bt"><span class="seg-m${l}" style="width:${r.counts[l] / INDICATORS.length * 100}%"></span></span>
+        <span class="bn">${r.counts[l]}</span></div>`;
+    });
+
+    h += `<div class="sec-hd">Capacity profile</div><div class="profile">
+      <span></span><span class="ph">0</span><span class="ph">H</span><span class="ph">I</span><span class="ph">R</span>`;
+    CATEGORIES.forEach(c => {
+      h += `<span class="pcat">${c.name}</span>`;
+      c.indicators.forEach(i => {
+        const a = state.answers[i.id];
+        h += `<span class="pn" data-goto="${i.id}" title="${i.name}">${i.name}</span>`;
+        for (let l = 0; l <= 3; l++) {
+          h += `<span class="pc ${a !== undefined && l <= a ? 'seg-m' + a : ''}"></span>`;
+        }
+      });
+    });
+    h += `</div>`;
+
+    const gaps = r.answered.filter(i => state.answers[i.id] < 3);
+    h += `<div class="sec-hd">Next-step capacities</div>`;
+    if (!gaps.length) h += `<p class="empty-msg">All assessed indicators are at regional/global support capacity.</p>`;
+    gaps.sort((a, b) => state.answers[a.id] - state.answers[b.id]).forEach(i => {
+      const a = state.answers[i.id];
+      h += `<div class="gap-item"><div class="gi-hd"><span class="pn" data-goto="${i.id}" style="cursor:pointer">${i.name}</span><span class="gi-to">→ ${MODELS[a].short}</span></div>
+        <div class="gi-txt">${esc(i.cells[a][0])}${i.cells[a].length > 1 ? ' …' : ''}</div></div>`;
+    });
+  }
+
+  const missing = INDICATORS.filter(i => state.answers[i.id] === undefined);
+  if (r.answered.length && missing.length) {
+    h += `<div class="sec-hd">Not yet assessed</div><div class="small">${missing.map(i => `<a href="#" data-goto="${i.id}">${i.name}</a>`).join(' · ')}</div>`;
+  }
+
+  h += `<div class="res-actions">
+      <button class="btn primary" id="exportCsv">Export CSV</button>
+      <button class="btn" id="printBtn">Print / PDF</button>
+      <button class="btn" id="resetBtn">Reset</button>
+    </div>
+    <p class="disclaimer">The three models are indicative categories. The closest-model result is a guide to support situation analysis and planning — not a formal rating. Answers are stored only in this browser.</p>`;
+  document.getElementById('resBody').innerHTML = h;
+}
+
+document.getElementById('results').addEventListener('click', e => {
+  const g = e.target.closest('[data-goto]');
+  if (g) {
+    e.preventDefault();
+    catSel.value = 'all'; document.getElementById('search').value = ''; applyFilters();
+    const el = grid.querySelector(`.ind[data-ind="${g.dataset.goto}"]`);
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    el.animate([{ background: '#FFF3C4' }, { background: '#fff' }], { duration: 1400 });
+    return;
+  }
+  if (e.target.id === 'resetBtn') {
+    if (!confirm('Clear all answers and notes?')) return;
+    state = { answers: {}, notes: {}, country: '' };
+    countryInput.value = '';
+    document.querySelectorAll('.note-area').forEach(t => { t.value = ''; t.classList.remove('open', 'has-text'); });
+    save(); refresh();
+  }
+  if (e.target.id === 'printBtn') window.print();
+  if (e.target.id === 'exportCsv') exportCsv();
+});
+
+function exportCsv() {
+  const q = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+  const rows = [['Country/setting', 'Category', 'Indicator', 'Score (0-3)', 'Current capacity model', 'Current capacity description', 'Next-step model', 'Next-step description', 'Notes']];
+  INDICATORS.forEach(i => {
+    const a = state.answers[i.id];
+    rows.push([
+      state.country, i.cat.name, i.name,
+      a ?? '', a === undefined ? 'Not assessed' : LEVEL_NAMES[a],
+      a ? i.cells[a - 1].join(' ') : '',
+      a !== undefined && a < 3 ? MODELS[a].name : '',
+      a !== undefined && a < 3 ? i.cells[a].join(' ') : '',
+      state.notes[i.id] || ''
+    ]);
+  });
+  const r = compute(), cm = closestModel(r);
+  rows.push([]);
+  rows.push(['Closest capacity model', cm === null ? '' : (cm === 0 ? 'Below hybrid domestic' : MODELS[cm - 1].name)]);
+  rows.push(['Mean score', r.answered.length ? r.mean.toFixed(2) : '']);
+  const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
+  const slug = (state.country || 'assessment').trim().replace(/[^\w-]+/g, '_');
+  a.download = `CCF_self-assessment_${slug}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+setMode(location.hash === '#assess');
+</script>
+</body>
+</html>
